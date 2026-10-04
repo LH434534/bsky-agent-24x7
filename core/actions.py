@@ -15,10 +15,15 @@ from .memory import Memory
 log = logging.getLogger("actions")
 
 DEFAULT_QUERIES = [
-    "python", "automação", "dev", "open source", "linux", "self-host", "docker",
-    "bot", "api", "startups", "build in public", "engenharia de software",
-    "inteligência artificial", "produtividade", "postgres", "rust", "typescript",
-    "carreira tech", "ciência de dados", "infra",
+    "futebol", "jogos", "série", "música", "filme", "anime", "futebol brasileiro",
+    "clima", "chuva", "calor", "final de semana", "sexta", "domingo",
+    "faculdade", "escola", "prova", "trabalho", "estágio", "emprego",
+    "celular", "android", "iphone", "internet", "wifi", "app",
+    "comida", "lanche", "café", "pizza", "hambúrguer", "churrasco",
+    "academia", "corrida", "skate", "praia", "viagem",
+    "memes", "twitter", "instagram", "tiktok", "youtube", "streaming",
+    "tecnologia", "programação", "python", "linux", "jogos indie",
+    "sono", "preguiça", "segunda-feira", "saudade", "amizade",
 ]
 
 SELF_PROMO_HINTS = ["giveaway", "airdrop", "promo", "discount code", "casino", "bet now"]
@@ -57,7 +62,7 @@ class Actions:
                 return text
             log.info("screen rejected (%s): %.60s", why, text)
             text = self.brain.write_post(self._topic(), style=random.choice(
-                ["observation", "hot take", "question", "tip"]))
+                ["algo do seu dia", "uma opinião", "uma pergunta", "algo que você curte"]))
         return None
 
     def _post_text(self, text: str) -> bool:
@@ -88,9 +93,15 @@ class Actions:
         if not self._act("post"):
             return False
         topic = self._topic()
-        style = random.choice(["hot take", "observation", "tip", "question", "contrarian"])
-        if random.random() < 0.18:
-            # thread — 2 self-replies, spaced
+        style = random.choice([
+            "algo que você reparou hoje",
+            "uma opinião meio impopular",
+            "algo que te irritou de leve",
+            "uma pergunta genuína",
+            "algo que você está fazendo agora",
+            "algo que você curte e ninguém comenta",
+        ])
+        if random.random() < 0.12:
             return self.do_thread(topic)
         text = self.brain.write_post(topic, style=style)
         return self._post_text(text)
@@ -99,9 +110,9 @@ class Actions:
         if not self._act("post"):
             return False
         topic = topic or self._topic()
-        parts = [self.brain.write_post(topic, style="hook"),
-                 self.brain.write_post(topic, style="detail"),
-                 self.brain.write_post(topic, style="punchline")]
+        parts = [self.brain.write_post(topic, style="o que chamou atenção"),
+                 self.brain.write_post(topic, style="um detalhe específico"),
+                 self.brain.write_post(topic, style="a conclusão simples")]
         parts = [p for p in parts if p]
         if len(parts) < 2:
             return self._post_text(parts[0] if parts else "...")
