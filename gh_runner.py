@@ -79,8 +79,12 @@ def commit_state(tag: str) -> bool:
             log(f"estado commitado ({tag})")
             return True
         time.sleep(5 * (attempt + 1))
-    log("push falhou (não-fatal)")
-    return False
+    # último recurso: só o bot escreve data/, então force-push é seguro aqui
+    rc, err = sh("git", "push", "--force", "origin", "HEAD:refs/heads/main", timeout=180)
+    log(f"git push --force rc={rc} {err.strip()[:200]}")
+    if rc != 0:
+        log("push falhou (não-fatal)")
+    return rc == 0
 
 
 def main() -> int:
