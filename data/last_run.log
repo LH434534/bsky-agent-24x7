@@ -38,3 +38,34 @@ error: Please commit or stash them.
 error: failed to push some refs to 'https://github.com/LH434534/bsky-agent-24x7'
 hint: Updates were 
 17:12:57 GH      │ push falhou (não-fatal)
+17:24:23 GH      │ git status rc=0 -> M  data/corpus.txt
+M  data/last_run.log
+A  data/spam_state.json
+?? core/__pycache__/
+?? data/hb_worker.json
+17:24:23 GH      │ git commit rc=0 
+17:24:23 GH      │ git pull rc=128 error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+17:24:23 GH      │ git push rc=1 To https://github.com/LH434534/bsky-agent-24x7
+ ! [rejected]        HEAD -> main (fetch first)
+error: failed to push some refs to 'https://github.com/LH434534/bsky-agent-24x7'
+hint: Updates were rejec
+17:24:28 GH      │ git pull rc=128 error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+17:24:29 GH      │ git push rc=1 To https://github.com/LH434534/bsky-agent-24x7
+ ! [rejected]        HEAD -> main (fetch first)
+error: failed to push some refs to 'https://github.com/LH434534/bsky-agent-24x7'
+hint: Updates were rejec
+17:24:39 GH      │ git pull rc=128 error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+17:24:39 GH      │ git push rc=1 To https://github.com/LH434534/bsky-agent-24x7
+ ! [rejected]        HEAD -> main (fetch first)
+error: failed to push some refs to 'https://github.com/LH434534/bsky-agent-24x7'
+hint: Updates were rejec
+17:24:54 GH      │ git pull rc=128 error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+17:24:54 GH      │ git push rc=1 To https://github.com/LH434534/bsky-agent-24x7
+ ! [rejected]        HEAD -> main (fetch first)
+error: failed to push some refs to 'https://github.com/LH434534/bsky-agent-24x7'
+hint: Updates were rejec
+17:25:14 GH      │ push falhou (não-fatal)
