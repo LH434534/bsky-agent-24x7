@@ -313,3 +313,12 @@ A  data/session.json
 22:19:07 GH      │ brain provider: ollama
 22:19:07 GH      │ OLLAMA_MODEL=qwen2.5:7b-instruct host=http://localhost:11434
 22:20:32 GH      │ brain sample (84.2s): 'Agora que a Netflix tá dando streams gratuitos pro Brasil, tô pensando na infra pra streaming ficar cada vez mais rápida. Cada um tem q se adaptar né?'
+22:32:35 GH      │ git status rc=0 -> M  data/corpus.txt
+ M data/hb_worker.json
+M  data/last_run.log
+ M scripts/setup_brain.sh
+?? data/brain_model.txt
+22:32:35 GH      │ git commit rc=0 
+22:32:36 GH      │ git push --force rc=0 To https://github.com/LH434534/bsky-agent-24x7
+ + 5f48067...ae4cb41 HEAD -> main (forced update)
+22:32:36 GH      │ estado commitado (tick21)
