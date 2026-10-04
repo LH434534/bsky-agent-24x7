@@ -1,0 +1,22 @@
+=== git ===
+ M data/hb_worker.json
+ M data/last_run.log
+?? core/__pycache__/
+?? data/debug.txt
+=== branch ===
+main
+=== remote ===
+origin	https://github.com/LH434534/bsky-agent-24x7 (fetch)
+origin	https://github.com/LH434534/bsky-agent-24x7 (push)
+=== data ===
+total 136
+drwxr-xr-x 2 runner runner  4096 Oct  4 17:19 .
+drwxr-xr-x 8 runner runner  4096 Oct  4 17:16 ..
+-rw-r--r-- 1 runner runner 49128 Oct  4 17:18 corpus.txt
+-rw-r--r-- 1 runner runner   260 Oct  4 17:19 debug.txt
+-rw-r--r-- 1 runner runner    65 Oct  4 17:19 hb_worker.json
+-rw-r--r-- 1 runner runner  2151 Oct  4 17:19 last_run.log
+-rw-r--r-- 1 runner runner 53248 Oct  4 17:17 memory.db
+-rw-r--r-- 1 runner runner  4169 Oct  4 17:16 seed_corpus.txt
+-rw-r--r-- 1 runner runner   813 Oct  4 17:16 session.json
+-rw-r--r-- 1 runner runner   270 Oct  4 17:19 spam_state.json
