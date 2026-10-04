@@ -70,21 +70,21 @@ def commit_state(tag: str) -> bool:
     log(f"git commit rc={rc} {out.strip()[:150]}")
     if rc != 0:
         return False
-    for attempt in range(4):
-        rc, err = sh("git", "pull", "--rebase", "-X", "theirs", "origin", "HEAD", timeout=180)
-        log(f"git pull rc={rc} {err.strip()[:150]}")
-        rc, err = sh("git", "push", "origin", "HEAD", timeout=180)
-        log(f"git push rc={rc} {err.strip()[:200]}")
-        if rc == 0:
-            log(f"estado commitado ({tag})")
-            return True
-        time.sleep(5 * (attempt + 1))
-    # último recurso: só o bot escreve data/, então force-push é seguro aqui
+    # só o bot escreve data/ — force-push é a estratégia primária.
+    # (pull --rebase falha porque o beacon reescreve hb_worker.json entre add e pull)
     rc, err = sh("git", "push", "--force", "origin", "HEAD:refs/heads/main", timeout=180)
     log(f"git push --force rc={rc} {err.strip()[:200]}")
-    if rc != 0:
-        log("push falhou (não-fatal)")
-    return rc == 0
+    if rc == 0:
+        log(f"estado commitado ({tag})")
+        return True
+    for attempt in range(3):
+        rc, err = sh("git", "push", "origin", "HEAD", timeout=180)
+        log(f"git push rc={rc} {err.strip()[:150]}")
+        if rc == 0:
+            return True
+        time.sleep(5 * (attempt + 1))
+    log("push falhou (não-fatal)")
+    return False
 
 
 def main() -> int:
