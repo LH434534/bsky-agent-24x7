@@ -46,16 +46,17 @@ jobs:
           restore-keys: |
             ollama-${{ runner.os }}-
 
-      - name: instala cérebro (ollama + modelo)
-        run: |
-          chmod +x scripts/setup_brain.sh
-          bash scripts/setup_brain.sh
-
       - name: restore state
         run: |
           mkdir -p data
           git checkout HEAD -- data/ 2>/dev/null || true
           ls -la data/ || true
+
+      - name: instala cérebro (ollama + modelo)
+        run: |
+          chmod +x scripts/setup_brain.sh
+          bash scripts/setup_brain.sh
+          cat data/brain_model.txt 2>/dev/null || true
 
       - name: run agent
         env:
