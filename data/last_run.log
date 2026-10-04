@@ -16,3 +16,14 @@ error: Please commit or stash them.
 17:18:00 GH      │ git push rc=0 To https://github.com/LH434534/bsky-agent-24x7
    ce264d4..e6ac770  HEAD -> main
 17:18:00 GH      │ estado commitado (tick4)
+17:19:00 GH      │ git status rc=0 -> M  data/corpus.txt
+ M data/hb_worker.json
+M  data/last_run.log
+A  data/spam_state.json
+?? core/__pycache__/
+17:19:00 GH      │ git commit rc=0 
+17:19:00 GH      │ git pull rc=128 error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+17:19:02 GH      │ git push rc=0 To https://github.com/LH434534/bsky-agent-24x7
+   e6ac770..cf8d318  HEAD -> main
+17:19:02 GH      │ estado commitado (tick8)
