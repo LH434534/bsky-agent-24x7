@@ -305,3 +305,11 @@ A  data/session.json
 22:04:35 GH      │ git push --force rc=0 To https://github.com/LH434534/bsky-agent-24x7
  + b6c2303...f0eff20 HEAD -> main (forced update)
 22:04:35 GH      │ estado commitado (tick21)
+22:19:07 GH      │ runner start — 330 min, deadline 03:49Z
+22:19:07 GH      │ cwd=/home/runner/work/bsky-agent-24x7/bsky-agent-24x7 py=3.11.16
+22:19:07 GH      │ data/: ['brain_model.txt', 'corpus.txt', 'debug.txt', 'hb_worker.json', 'last_run.log', 'memory.db', 'seed_corpus.txt', 'session.json', 'spam_state.json']
+22:19:07 GH      │ env handle=ok pw=ok
+22:19:07 GH      │ logado como @his08.bsky.social (did:plc:dh6eweh7brbtraluugpvpruj)
+22:19:07 GH      │ brain provider: ollama
+22:19:07 GH      │ OLLAMA_MODEL=qwen2.5:7b-instruct host=http://localhost:11434
+22:20:32 GH      │ brain sample (84.2s): 'Agora que a Netflix tá dando streams gratuitos pro Brasil, tô pensando na infra pra streaming ficar cada vez mais rápida. Cada um tem q se adaptar né?'
