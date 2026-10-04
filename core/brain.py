@@ -20,6 +20,8 @@ from typing import Any, Dict, Iterable, List, Optional
 
 import requests
 
+from .persona import Persona, DEFAULT as DEFAULT_PERSONA
+
 log = logging.getLogger("brain")
 
 DATA = Path(os.environ.get("BSKY_AGENT_DATA", Path(__file__).resolve().parent.parent / "data"))
@@ -111,44 +113,15 @@ class Offline(Provider):
     name = "offline"
 
     OPENERS = [
-        "hot take:", "nobody talks about this enough:", "honestly?", "real talk —",
-        "unpopular opinion:", "quick note:", "the thing is,", "reminder:",
-        "been thinking about this:", "small observation:",
-    ]
-    FRAMES = [
-        "most people get {t} wrong. it's not about the tool, it's about the feedback loop you build around it.",
-        "{t} looks simple until you ship it. then the edge cases arrive in groups of three.",
-        "if your {t} setup needs a doc to explain, it's already too clever.",
-        "the fastest way to improve at {t}: do it daily, in public, badly, for 30 days.",
-        "everyone optimizes {t}. nobody measures whether it mattered.",
-        "{t} is 10% knowing and 90% having done it enough times to stop panicking.",
-        "you don't need a better {t} stack. you need to finish the one you started.",
-        "the boring version of {t} wins more often than people admit.",
-        "spent long enough around {t} to know: the hard part is never the part you prepared for.",
-        "people ask what to learn next. usually the answer is: go deeper on {t}.",
-    ]
-    QUESTIONS = [
-        "what's the one {t} habit that actually stuck for you?",
-        "genuinely curious — how do you approach {t} when you only have 20 minutes?",
-        "what did you believe about {t} a year ago that you no longer believe?",
-        "what's the most overrated advice in {t}?",
-        "what finally made {t} click for you?",
-    ]
-    REPLIES = [
-        "this is the part people skip. the unglamorous middle is where it's decided.",
-        "strong agree — and the corollary is that you have to ship before you feel ready.",
-        "underrated take. most of the leverage is in the setup, not the execution.",
-        "the 'boring and consistent' path is undefeated and nobody wants to hear it.",
-        "yeah. and once you see it you can't unsee it in every project after.",
-        "saving this. the framing is cleaner than the 40-min video version.",
-        "the interesting bit is what this implies for small teams — they can move before it's obvious.",
+        "mano", "gente", "não vou mentir", "sério", "eu reparando agora",
     ]
 
-    def __init__(self):
+    def __init__(self, P: Optional[Persona] = None):
         self.chain: Dict[tuple, Dict[str, int]] = {}
         self.starts: List[tuple] = []
         self.topics: List[str] = []
         self._dirty = True
+        self.P: Persona = P or DEFAULT_PERSONA
 
     # ---- corpus
     def feed(self, texts: Iterable[str]) -> None:
@@ -219,10 +192,7 @@ class Offline(Provider):
         return s[:1].upper() + s[1:] if s else ""
 
     def topic(self) -> str:
-        if not self.topics:
-            return random.choice(["automation", "building in public", "systems",
-                                  "dev life", "shipping", "focus", "engineering"])
-        return random.choice(self.topics)
+        return random.choice(self.P.coisas)
 
     # ---- provider api
     def available(self) -> bool:
@@ -232,18 +202,24 @@ class Offline(Provider):
         if self._dirty:
             self._train()
         u = user.lower()
-        if "yes or no" in u or "exactly yes" in u:
-            return "YES" if random.random() < 0.5 else "NO"
-        if "reply" in u or "comment" in u or "respond to" in u:
-            return random.choice(self.REPLIES)
-        if "question" in u:
-            return random.choice(self.QUESTIONS).replace("{t}", self.topic())
-        t = self.topic()
-        line = self._gen(seed=t, max_words=random.randint(16, 30))
-        if not self._good(line):
-            line = random.choice(self.FRAMES).replace("{t}", t)
-        if random.random() < 0.45:
-            line = f"{random.choice(self.OPENERS)} {line[0].lower() + line[1:]}"
+        P = self.P
+        if "sim ou nao" in u or "yes or no" in u or "exactly yes" in u:
+            return "SIM" if random.random() < 0.5 else "NAO"
+        if "resposta" in u or "responder" in u or '"' in u and "post de" in u:
+            return random.choice(P.replies)
+        if "pergunta" in u or "question" in u:
+            return random.choice(P.questions).replace(
+                "{coisa}", random.choice(P.coisas))
+        coisa = random.choice(P.coisas)
+        r = random.random()
+        if r < 0.62:
+            line = random.choice(P.frames).replace(
+                "{coisa}", coisa).replace("{adj}", random.choice(P.adjetivos))
+        else:
+            line = random.choice(P.questions).replace("{coisa}", coisa)
+        if random.random() < 0.30:
+            op = random.choice(self.OPENERS)
+            line = f"{op}, {line[0].lower() + line[1:]}"
         return line[:300]
 
     # ---- decisions (used when no LLM provider is reachable)
@@ -254,13 +230,15 @@ class Offline(Provider):
         t = (post_text or "").lower()
         if len(t) < 30 or any(s in t for s in self.SPAMMY):
             return False
-        score = 0.30
+        score = 0.28
         if "?" in t:
-            score += 0.30                                  # questions are worth answering
-        if any(w in t for w in ("how", "why", "should i", "what do you", "anyone else")):
-            score += 0.12
+            score += 0.30                                  # perguntas valem resposta
+        if any(w in t for w in ("você", "vocês", "alguém", "como", "por que", "porque",
+                                "qual", "quem", "o que", "será", "concorda", "acham",
+                                "how", "why", "should i", "what do you", "anyone else")):
+            score += 0.14
         if 40 <= len(t) <= 320:
-            score += 0.12                                  # substantive, readable
+            score += 0.12                                  # substantivo e legível
         if t.count("http") > 1:
             score -= 0.25
         if t.count("#") > 2:
@@ -292,20 +270,12 @@ class Offline(Provider):
 
 
 # ═════════════════════════════════════════════════════════════════════ engine
-PERSONA = """You are the voice of a single Bluesky account. You write like a real person:
-opinionated, concrete, a little dry. Portuguese (pt-BR) unless the conversation is in English.
-
-Hard rules:
-- Max 280 characters. One idea. No emoji spam (one is fine, never more).
-- No hashtags unless asked. No "here's the thing," no "in today's world," no AI tell-tale phrases.
-- No engagement bait ("like and follow", "RT if", "comment below").
-- Never claim to be an AI or a bot.
-- Sound human: lowercase is fine, contractions are fine, mild swearing is fine.
-- Output ONLY the text of the post/reply. No quotes, no explanation, no prefix."""
+PERSONA = DEFAULT_PERSONA.system          # compat: quem importava a string
 
 
 class Brain:
-    def __init__(self, providers: Optional[List[Provider]] = None, persona: str = PERSONA):
+    def __init__(self, providers: Optional[List[Provider]] = None,
+                 persona: Optional[Persona] = None):
         self.offline = Offline()
         self.providers: List[Provider] = providers or [
             Ollama(),
@@ -317,7 +287,9 @@ class Brain:
             OpenAICompat("hf", "https://router.huggingface.co/v1",
                          "Qwen/Qwen2.5-72B-Instruct", "HF_TOKEN"),
         ]
-        self.persona = persona
+        self.P = persona or DEFAULT_PERSONA
+        self.persona = self.P.system
+        self.offline.P = self.P
         self.active: Optional[Provider] = None
         self.fail_until: Dict[str, float] = {}
 
@@ -338,54 +310,87 @@ class Brain:
         return self.offline
 
     def gen(self, instruction: str, *, context: str = "", max_tokens: int = 220,
-            temperature: float = 0.9) -> str:
+            temperature: float = 0.9, system: Optional[str] = None) -> str:
         """Generate text; falls through providers, ends at the offline engine."""
         user = instruction
         if context:
             user = f"Context:\n{context}\n\nTask:\n{instruction}"
+        sys_prompt = system or self.persona
         order = [self.pick(), self.offline]
         for p in order:
-            if p is self.offline and self.active is not self.offline:
-                pass
             try:
-                out = p.complete(self.persona, user, max_tokens=max_tokens, temperature=temperature)
+                out = p.complete(sys_prompt, user, max_tokens=max_tokens, temperature=temperature)
                 if out:
                     return self._scrub(out)
             except Exception as e:
                 log.warning("provider %s failed: %s", p.name, str(e)[:120])
                 self.fail_until[p.name] = time.time() + 120
                 continue
-        return self._scrub(self.offline.complete(self.persona, user) or "...")
+        return self._scrub(self.offline.complete(sys_prompt, user) or "...")
 
-    @staticmethod
-    def _scrub(text: str) -> str:
-        t = text.strip().strip('"').strip("“”").strip()
-        t = re.sub(r"^(post|reply|tweet|output|resposta)\s*[:：]\s*", "", t, flags=re.I)
+    # ── normalização de voz: expande abreviações e corta tiques ─────────────
+    ABBREV = [
+        (r"\bvc\b", "você"), (r"\bvcs\b", "vocês"), (r"\btbm\b", "também"),
+        (r"\bmsm\b", "mesmo"), (r"\bpq\b", "porque"), (r"\bvdd\b", "verdade"),
+        (r"\bbjs\b", "beijos"), (r"\bblz\b", "beleza"), (r"\bdboa\b", "de boa"),
+        (r"\bfds\b", "fim de semana"), (r"\bhrs\b", "horas"), (r"\bmin\b", "minutos"),
+        (r"\bobg\b", "obrigado"), (r"\bvlw\b", "valeu"), (r"\bqdo\b", "quando"),
+        (r"\btd\b", "tudo"), (r"\bmt\b", "muito"), (r"\bmto\b", "muito"),
+        (r"\bsmp\b", "sempre"), (r"\bcmg\b", "comigo"), (r"\bctg\b", "com você"),
+        (r"\bplvr\b", "palavra"), (r"\bpdc\b", "pode crer"), (r"\bflw\b", "falou"),
+        (r"\bsdd\b", "saudade"), (r"\bnem a pau\b", "de jeito nenhum"),
+    ]
+    AI_TICKS = [
+        r"(?i)\bno mundo de hoje\b", r"(?i)\bna era digital\b",
+        r"(?i)\bé importante ressaltar\b", r"(?i)\bvale destacar\b",
+        r"(?i)\bcomo (?:uma )?(?:ia|inteligência artificial)\b",
+        r"(?i)\bcomo (?:um )?(?:modelo de linguagem|assistente|bot)\b",
+        r"(?i)^post\s*[:：]", r"(?i)^resposta\s*[:：]", r"(?i)^resposta\s*[:：]",
+        r"(?i)^aqui está\b", r"(?i)^claro[,!]", r"(?i)^com certeza[,!]",
+    ]
+
+    @classmethod
+    def _scrub(cls, text: str) -> str:
+        t = text.strip().strip('"').strip("“”").strip("‘’").strip()
+        # tira prefixos que modelos insistem em colocar
+        t = re.sub(r"^(post|reply|tweet|output|resposta|saída|resposta final)\s*[:：]\s*",
+                   "", t, flags=re.I)
+        # tica de obediência no começo ("Claro!", "Com certeza!")
+        t = re.sub(r"^(claro|com certeza|certamente|sem dúvida)\s*[,!]\s*", "", t, flags=re.I)
         t = re.sub(r"\s+\n\s+", " ", t)
         t = re.sub(r"[ \t]{2,}", " ", t).strip()
         t = re.sub(r"```.*?```", "", t, flags=re.S).strip()
+        # expande abreviações (palavra inteira, preservando o resto da frase)
+        for pat, full in cls.ABBREV:
+            t = re.sub(pat, full, t)
+        # remove qualquer tique de IA remanescente
+        for pat in cls.AI_TICKS:
+            t = re.sub(pat, "", t)
+        t = re.sub(r"\s{2,}", " ", t).strip(" .,;:-")
         return t[:300]
 
     # ------------------------------------------------------------- task sugar
-    def write_post(self, topic: str, style: str = "hot take") -> str:
+    def write_post(self, topic: str, style: str = "qualquer") -> str:
+        """Escreve um post na voz do personagem."""
         return self.gen(
-            f"Write one original Bluesky post, style: {style}. Topic seed: {topic}. "
-            f"Max 280 characters. Portuguese preferred. One idea only.",
-            max_tokens=90, temperature=1.0)
+            f"Escreva um post agora. Semente de assunto (use ou ignore, é só um empurrão): {topic}\n"
+            f"Estilo: {style}. Lembrete: sem abreviações, sem hashtag, uma ideia só.",
+            max_tokens=90, temperature=1.05)
 
     def write_reply(self, post_text: str, author: str = "") -> str:
         return self.gen(
-            f"Write a short, genuine reply to this post by @{author}: \"{post_text}\" "
-            f"Add a real thought or a specific detail. Max 220 characters. No flattery, no 'great post'.",
-            max_tokens=70, temperature=1.0)
+            f"Post de @{author or 'alguém'}:\n\"{post_text}\"\n\n"
+            f"Escreva sua resposta. Lembrete: sem abreviações, sem elogio ao post, "
+            f"entre 20 e 160 caracteres.",
+            system=self.P.reply, max_tokens=70, temperature=1.05)
 
     def pick_topics(self, n: int = 3) -> List[str]:
         if self.pick() is self.offline:
             return list(dict.fromkeys(self.offline.topic() for _ in range(n)))
-        raw = self.gen(f"List {n} specific, concrete subjects this account should write about today. "
-                       f"One per line, 2-5 words each, no numbering.", max_tokens=60, temperature=1.1)
-        lines = [re.sub(r"^[\-\d\.\)\s]+", "", l).strip() for l in raw.splitlines()]
-        topics = [l for l in lines if 2 <= len(l) <= 60 and len(l.split()) <= 5][:n]
+        raw = self.gen(self.P.topics, system=self.P.topics,
+                       max_tokens=70, temperature=1.15)
+        lines = [re.sub(r"^[\-\d\.\)\*\s]+", "", l).strip() for l in raw.splitlines()]
+        topics = [l for l in lines if 2 <= len(l) <= 60 and len(l.split()) <= 6][:n]
         if not topics:
             topics = [self.offline.topic() for _ in range(n)]
         return list(dict.fromkeys(topics))
@@ -394,17 +399,15 @@ class Brain:
         if self.pick() is self.offline:
             return self.offline.judge_follow(handle, bio, posts)
         raw = self.gen(
-            f"Decide whether to follow @{handle}. Bio: {bio or '(none)'}\n"
-            f"Recent posts: {posts[:3]}\nAnswer with exactly YES or NO.",
-            max_tokens=5, temperature=0.2).upper()
-        return "YES" in raw[:10]
+            f"@{handle}\nBio: {bio or '(sem bio)'}\n"
+            f"Posts recentes:\n" + "\n".join(f"- {p[:160]}" for p in posts[:3]),
+            system=self.P.follow, max_tokens=6, temperature=0.3).upper()
+        return "SIM" in raw[:12] or "YES" in raw[:12]
 
     def judge_reply(self, post_text: str) -> bool:
         if self.pick() is self.offline:
             return self.offline.judge_reply(post_text)
-        raw = self.gen(
-            f"Is this post worth a genuine reply from a real person? "
-            f"Post: \"{post_text}\"\nAnswer exactly YES or NO. "
-            f"NO if it is spam, a giveaway, crypto shilling, or needs no response.",
-            max_tokens=5, temperature=0.2).upper()
-        return "YES" in raw[:10]
+        raw = self.gen(f"Post:\n\"{post_text}\"",
+                       system=self.P.reply_worth, max_tokens=6, temperature=0.3).upper()
+        return ("SIM" in raw[:12] or "YES" in raw[:12]) and "NAO" not in raw[:12] \
+            and "NOT" not in raw[:12]
