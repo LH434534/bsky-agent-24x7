@@ -55,7 +55,7 @@ def commit_state(tag: str) -> bool:
     sh("git", "config", "user.email", "bot@users.noreply.github.com")
     sh("git", "config", "user.name", "bsky-bot")
     keep = ["memory.db", "corpus.txt", "spam_state.json", "session.json",
-            "autofix_state.json", "last_run.log"]
+            "autofix_state.json", "last_run.log", "agent.log", "agency_state.json"]
     for p in keep:
         f = DATA / p
         if f.exists():
@@ -107,8 +107,7 @@ def main() -> int:
     from core.brain import Brain
     from core.antispam import SpamGuard, Limits
     from core.memory import Memory
-    from core.actions import Actions
-    from core.scheduler import Loop, Weights
+    from core.actions import Actions, DEFAULT_QUERIES
 
     handle = os.environ.get("BSKY_HANDLE", "")
     apppw = os.environ.get("BSKY_APP_PASSWORD", "")
@@ -149,60 +148,67 @@ def main() -> int:
     except Exception as e:
         log(f"brain sample falhou: {e}")
 
-    acts = Actions(bsky, brain, guard, mem)
+    # ── agência: estado interno que decide, não pesos fixos ──────────────────
+    from core.agency import Agency
+    from core.autonomy import Autonomous
+
+    A = Agency.load(tz_offset=int(os.environ.get("TZ_OFFSET", "-3")))
+    A.seed_topics(DEFAULT_QUERIES)
+    log(f"agência: {A.describe()}")
+
+    # garante que os arquivos de agência entrem no primeiro commit
+    A.save()
+    (DATA / "agent.log").touch()
+
+    acts = Actions(bsky, brain, guard, mem, agency=A)
     H = {"post": acts.do_post, "reply": acts.do_reply, "follow": acts.do_follow,
          "like": acts.do_like, "repost": acts.do_repost,
          "notifications": acts.do_engage_notifications, "harvest": acts.do_harvest}
 
     beacon = Beacon("worker", every=15).start()
-    loop = Loop(weights=Weights(),
-                tick_min=float(os.environ.get("TICK_MIN", 60)),
-                tick_max=float(os.environ.get("TICK_MAX", 300)))
+
+    def flush():
+        guard.save()
+        A.save()
 
     last_state = time.time()
-    ticks = 0
-    errors = 0
+
+    def maybe_commit():
+        nonlocal last_state
+        if time.time() - last_state > STATE_EVERY_MIN * 60:
+            last_state = time.time()
+            commit_state(f"tick{A.ticks}")
+
+    # envolve os handlers para commitar estado periodicamente
+    def wrapped(kind: str):
+        fn = H.get(kind)
+        def _f():
+            r = fn()
+            maybe_commit()
+            return r
+        return _f
+
+    engine = Autonomous(
+        agency=A,
+        handlers={k: wrapped(k) for k in H},
+        feed_provider=lambda n: acts.browse(n),
+        notif_check=acts.has_pending_notifications,
+        on_flush=flush,
+        heartbeat=lambda: None,
+    )
+
     try:
-        while time.time() < DEADLINE:
-            ticks += 1
-            action = loop._pick()
-            fn = H.get(action)
-            if fn is None:
-                time.sleep(loop.tick_min)
-                continue
-            try:
-                fn()
-                errors = max(0, errors - 1)
-            except Exception:
-                errors += 1
-                log(f"{action} crashed:\n{traceback.format_exc()[-500:]}")
-                if errors >= 5:
-                    log("5 falhas seguidas — autofix")
-                    try:
-                        log("autofix: " + json.dumps(autofix.run(), ensure_ascii=False)[:200])
-                    except Exception:
-                        pass
-                    errors = 0
-                time.sleep(min(600, 30 * errors))
-
-            if time.time() - last_state > STATE_EVERY_MIN * 60:
-                last_state = time.time()
-                commit_state(f"tick{ticks}")
-                guard.save()
-
-            # dorme até a próxima decisão, mas nunca passa do deadline
-            nap = loop.tick_min * (1.0 if errors else 0.6)
-            end = min(time.time() + nap, DEADLINE)
-            while time.time() < end:
-                time.sleep(1.0)
+        engine.run(until_ts=DEADLINE)
     except KeyboardInterrupt:
         pass
     finally:
         beacon.stop()
         guard.save()
+        A.save()
         commit_state("final")
         st = mem.stats(24)
-        log(f"fim — ticks={ticks} stats24h={json.dumps(st, ensure_ascii=False)}")
+        log(f"fim — deliberações={A.ticks} stats24h={json.dumps(st, ensure_ascii=False)}")
+        log(f"agência final: {A.describe()}")
     return 0
 
 
