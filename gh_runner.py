@@ -138,7 +138,16 @@ def main() -> int:
     if prior:
         brain.offline.feed(prior)
     brain.offline._train()
-    log(f"brain provider: {brain.pick().name}")
+    provider = brain.pick().name
+    log(f"brain provider: {provider}")
+    if os.environ.get("OLLAMA_MODEL"):
+        log(f"OLLAMA_MODEL={os.environ['OLLAMA_MODEL']} host={os.environ.get('OLLAMA_HOST')}")
+    try:
+        t0 = time.time()
+        sample = brain.write_post("automação e infraestrutura")
+        log(f"brain sample ({time.time()-t0:.1f}s): {sample!r}")
+    except Exception as e:
+        log(f"brain sample falhou: {e}")
 
     acts = Actions(bsky, brain, guard, mem)
     H = {"post": acts.do_post, "reply": acts.do_reply, "follow": acts.do_follow,
