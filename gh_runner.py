@@ -29,8 +29,17 @@ DATA = ROOT / "data"
 DATA.mkdir(exist_ok=True)
 
 
+LOGFILE = DATA / "last_run.log"
+
+
 def log(m: str) -> None:
-    print(f"{time.strftime('%H:%M:%S')} GH      │ {m}", flush=True)
+    line = f"{time.strftime('%H:%M:%S')} GH      │ {m}"
+    print(line, flush=True)
+    try:
+        with open(LOGFILE, "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    except Exception:
+        pass
 
 
 def sh(*args: str, timeout: int = 120) -> tuple[int, str]:
@@ -45,21 +54,27 @@ def commit_state(tag: str) -> bool:
     """Commita o estado de volta no repo. Falha silenciosa — o bot vem primeiro."""
     sh("git", "config", "user.email", "bot@users.noreply.github.com")
     sh("git", "config", "user.name", "bsky-bot")
-    keep = ["memory.db", "corpus.txt", "spam_state.json", "session.json", "autofix_state.json"]
+    keep = ["memory.db", "corpus.txt", "spam_state.json", "session.json",
+            "autofix_state.json", "last_run.log"]
     for p in keep:
         f = DATA / p
         if f.exists():
             sh("git", "add", "-f", str(f))
     sh("git", "add", "-f", "data/seed_corpus.txt")
     rc, out = sh("git", "status", "--porcelain")
+    log(f"git status rc={rc} -> {out.strip()[:200] or '(vazio)'}")
     if not out.strip():
         return False
-    rc, _ = sh("git", "commit", "-q", "-m", f"state: {tag} [{time.strftime('%Y-%m-%d %H:%MZ', time.gmtime())}]")
+    rc, out = sh("git", "commit", "-q", "-m",
+                 f"state: {tag} [{time.strftime('%Y-%m-%d %H:%MZ', time.gmtime())}]")
+    log(f"git commit rc={rc} {out.strip()[:150]}")
     if rc != 0:
         return False
     for attempt in range(4):
         rc, err = sh("git", "pull", "--rebase", "-X", "theirs", "origin", "HEAD", timeout=180)
+        log(f"git pull rc={rc} {err.strip()[:150]}")
         rc, err = sh("git", "push", "origin", "HEAD", timeout=180)
+        log(f"git push rc={rc} {err.strip()[:200]}")
         if rc == 0:
             log(f"estado commitado ({tag})")
             return True
@@ -70,6 +85,10 @@ def commit_state(tag: str) -> bool:
 
 def main() -> int:
     log(f"runner start — {RUN_MINUTES:.0f} min, deadline {time.strftime('%H:%MZ', time.gmtime(DEADLINE))}")
+    log(f"cwd={ROOT} py={sys.version.split()[0]}")
+    log(f"data/: {sorted(p.name for p in DATA.glob('*')) if DATA.exists() else 'vazio'}")
+    log(f"env handle={'ok' if os.environ.get('BSKY_HANDLE') else 'FALTANDO'} "
+        f"pw={'ok' if os.environ.get('BSKY_APP_PASSWORD') else 'FALTANDO'}")
 
     # health antes de tudo
     from core import health, autofix
