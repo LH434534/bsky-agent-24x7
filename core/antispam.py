@@ -173,6 +173,13 @@ class SpamGuard:
         r"\bfurthermore\b", r"\bmoreover\b", r"\bin conclusion\b",
     ]
 
+    # abreviações que o personagem não usa — texto com isso passou pelo _scrub errado
+    SLANG = [
+        r"\bvc\b", r"\bvcs\b", r"\btbm\b", r"\bmsm\b", r"\bpq\b", r"\bvdd\b",
+        r"\bblz\b", r"\bfds\b", r"\bobg\b", r"\bvlw\b", r"\bqdo\b", r"\btd\b",
+        r"\bmt\b", r"\bmto\b", r"\bsmp\b", r"\bcmg\b", r"\bpdc\b", r"\bflw\b",
+    ]
+
     @staticmethod
     def simhash(text: str) -> int:
         t = re.sub(r"[^a-z0-9 ]", " ", text.lower())
@@ -212,6 +219,9 @@ class SpamGuard:
         for p in self.AI_TELLS:
             if re.search(p, low):
                 return False, f"ai tell: {p}"
+        for p in self.SLANG:
+            if re.search(p, low):
+                return False, f"abreviação proibida: {p}"
         if low.count("#") > self.limits.max_hashtags:
             return False, "too many hashtags"
         if len(re.findall(r"https?://", low)) > 1:
