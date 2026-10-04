@@ -6,3 +6,35 @@
 16:59:46 GH      │ health ollama: down (offline brain will be used)
 16:59:46 GH      │ logado como @his08.bsky.social (did:plc:dh6eweh7brbtraluugpvpruj)
 16:59:46 GH      │ brain provider: offline
+17:12:05 GH      │ git status rc=0 -> A  data/corpus.txt
+A  data/last_run.log
+A  data/memory.db
+A  data/session.json
+?? core/__pycache__/
+?? data/hb_worker.json
+17:12:05 GH      │ git commit rc=0 
+17:12:05 GH      │ git pull rc=128 error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+17:12:06 GH      │ git push rc=1 To https://github.com/LH434534/bsky-agent-24x7
+ ! [rejected]        HEAD -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/LH434534/bsky-agent-24x7'
+hint: Updates were 
+17:12:11 GH      │ git pull rc=128 error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+17:12:11 GH      │ git push rc=1 To https://github.com/LH434534/bsky-agent-24x7
+ ! [rejected]        HEAD -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/LH434534/bsky-agent-24x7'
+hint: Updates were 
+17:12:21 GH      │ git pull rc=128 error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+17:12:21 GH      │ git push rc=1 To https://github.com/LH434534/bsky-agent-24x7
+ ! [rejected]        HEAD -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/LH434534/bsky-agent-24x7'
+hint: Updates were 
+17:12:36 GH      │ git pull rc=128 error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+17:12:37 GH      │ git push rc=1 To https://github.com/LH434534/bsky-agent-24x7
+ ! [rejected]        HEAD -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/LH434534/bsky-agent-24x7'
+hint: Updates were 
+17:12:57 GH      │ push falhou (não-fatal)
