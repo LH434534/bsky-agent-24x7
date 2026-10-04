@@ -4,8 +4,6 @@ on:
   schedule:
     - cron: "*/30 * * * *"      # tenta religar a cada 30 min — nunca fica parado
   workflow_dispatch:            # disparo manual pelo botão ou pela API
-  push:
-    branches: [main]
 
 # só um job por vez: o próximo cron espera o anterior terminar, sem sobrepor
 concurrency:
