@@ -1,0 +1,76 @@
+name: bsky-bot-24x7
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"      # tenta religar a cada 30 min — nunca fica parado
+  workflow_dispatch:            # disparo manual pelo botão ou pela API
+  push:
+    branches: [main]
+
+# só um job por vez: o próximo cron espera o anterior terminar, sem sobrepor
+concurrency:
+  group: bsky-bot-24x7
+  cancel-in-progress: false
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350          # teto do Actions é 360
+    permissions:
+      contents: write             # necessário para commitar o estado
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: restore state
+        run: |
+          mkdir -p data
+          git checkout HEAD -- data/ 2>/dev/null || true
+          ls -la data/ || true
+
+      - name: run agent
+        env:
+          BSKY_HANDLE:            ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD:      ${{ secrets.BSKY_APP_PASSWORD }}
+          BSKY_PDS:               https://bsky.social
+          TZ_OFFSET:              "-3"
+          DAY_POSTS:              "20"
+          DAY_REPLIES:            "35"
+          DAY_FOLLOWS:            "60"
+          DAY_LIKES:              "150"
+          DAY_REPOSTS:            "25"
+          TICK_MIN:               "60"
+          TICK_MAX:               "300"
+          RUN_MINUTES:            "340"
+          STATE_EVERY_MIN:        "12"
+        run: |
+          python gh_runner.py
+
+      - name: persist state
+        if: always()
+        run: |
+          git config user.email "bot@users.noreply.github.com"
+          git config user.name  "bsky-bot"
+          git add -f data/ 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -q -m "state: final $(date -u +%Y-%m-%dT%H:%MZ)" || true
+            for i in 1 2 3 4; do
+              git pull --rebase -X theirs origin HEAD || true
+              git push origin HEAD && break
+              sleep $((i*5))
+            done
+          fi
