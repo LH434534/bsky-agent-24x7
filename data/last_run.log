@@ -1,0 +1,7 @@
+17:16:54 GH      │ runner start — 3 min, deadline 17:19Z
+17:16:54 GH      │ cwd=/home/runner/work/bsky-agent-24x7/bsky-agent-24x7 py=3.11.16
+17:16:54 GH      │ data/: ['corpus.txt', 'hb_worker.json', 'last_run.log', 'memory.db', 'seed_corpus.txt', 'session.json']
+17:16:54 GH      │ env handle=ok pw=ok
+17:16:55 GH      │ health ollama: down (offline brain will be used)
+17:16:55 GH      │ logado como @his08.bsky.social (did:plc:dh6eweh7brbtraluugpvpruj)
+17:16:55 GH      │ brain provider: offline
