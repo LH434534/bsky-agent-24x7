@@ -1,0 +1,178 @@
+#!/usr/bin/env python3
+"""Runner para GitHub Actions.
+
+Sobe o agente e roda por RUN_MINUTES minutos (o teto de job do Actions é 6h,
+então usamos ~5h45 e um cron de 30 min religa o próximo).
+
+Persistência: o estado (memory.db, corpus.txt, spam_state.json, session.json)
+vive no próprio repositório. Ele é commitado a cada STATE_EVERY_MIN minutos e
+no final — então um job morto pelo scheduler nunca perde mais que esse janela.
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+import time
+import traceback
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+
+RUN_MINUTES = float(os.environ.get("RUN_MINUTES", "345"))
+STATE_EVERY_MIN = float(os.environ.get("STATE_EVERY_MIN", "12"))
+DEADLINE = time.time() + RUN_MINUTES * 60
+
+DATA = ROOT / "data"
+DATA.mkdir(exist_ok=True)
+
+
+def log(m: str) -> None:
+    print(f"{time.strftime('%H:%M:%S')} GH      │ {m}", flush=True)
+
+
+def sh(*args: str, timeout: int = 120) -> tuple[int, str]:
+    try:
+        r = subprocess.run(args, cwd=str(ROOT), capture_output=True, text=True, timeout=timeout)
+        return r.returncode, (r.stdout or "") + (r.stderr or "")
+    except Exception as e:
+        return 127, str(e)
+
+
+def commit_state(tag: str) -> bool:
+    """Commita o estado de volta no repo. Falha silenciosa — o bot vem primeiro."""
+    sh("git", "config", "user.email", "bot@users.noreply.github.com")
+    sh("git", "config", "user.name", "bsky-bot")
+    keep = ["memory.db", "corpus.txt", "spam_state.json", "session.json", "autofix_state.json"]
+    for p in keep:
+        f = DATA / p
+        if f.exists():
+            sh("git", "add", "-f", str(f))
+    sh("git", "add", "-f", "data/seed_corpus.txt")
+    rc, out = sh("git", "status", "--porcelain")
+    if not out.strip():
+        return False
+    rc, _ = sh("git", "commit", "-q", "-m", f"state: {tag} [{time.strftime('%Y-%m-%d %H:%MZ', time.gmtime())}]")
+    if rc != 0:
+        return False
+    for attempt in range(4):
+        rc, err = sh("git", "pull", "--rebase", "-X", "theirs", "origin", "HEAD", timeout=180)
+        rc, err = sh("git", "push", "origin", "HEAD", timeout=180)
+        if rc == 0:
+            log(f"estado commitado ({tag})")
+            return True
+        time.sleep(5 * (attempt + 1))
+    log("push falhou (não-fatal)")
+    return False
+
+
+def main() -> int:
+    log(f"runner start — {RUN_MINUTES:.0f} min, deadline {time.strftime('%H:%MZ', time.gmtime(DEADLINE))}")
+
+    # health antes de tudo
+    from core import health, autofix
+    h = health.full()
+    for c in h.failed:
+        log(f"health {c.name}: {c.detail}")
+        if not c.ok and c.fatal:
+            autofix.run()
+
+    from core.beacon import Beacon
+    from core.atproto import Bsky
+    from core.brain import Brain
+    from core.antispam import SpamGuard, Limits
+    from core.memory import Memory
+    from core.actions import Actions
+    from core.scheduler import Loop, Weights
+
+    handle = os.environ.get("BSKY_HANDLE", "")
+    apppw = os.environ.get("BSKY_APP_PASSWORD", "")
+    if not handle or not apppw:
+        log("ERRO: BSKY_HANDLE / BSKY_APP_PASSWORD ausentes")
+        return 2
+
+    bsky = Bsky(handle, apppw,
+                pds=os.environ.get("BSKY_PDS", "https://bsky.social"),
+                session_file=str(DATA / "session.json"))
+    bsky.login()
+    log(f"logado como @{bsky.handle} ({bsky.did})")
+
+    guard = SpamGuard(limits=Limits(
+        day_posts=int(os.environ.get("DAY_POSTS", 20)),
+        day_replies=int(os.environ.get("DAY_REPLIES", 35)),
+        day_follows=int(os.environ.get("DAY_FOLLOWS", 60)),
+        day_likes=int(os.environ.get("DAY_LIKES", 150)),
+        day_reposts=int(os.environ.get("DAY_REPOSTS", 25))),
+        tz_offset=int(os.environ.get("TZ_OFFSET", "-3")),
+        state_file=DATA / "spam_state.json")
+    guard.load()
+
+    brain = Brain()
+    mem = Memory(DATA / "memory.db")
+    prior = mem.recent_texts(300)
+    if prior:
+        brain.offline.feed(prior)
+    brain.offline._train()
+    log(f"brain provider: {brain.pick().name}")
+
+    acts = Actions(bsky, brain, guard, mem)
+    H = {"post": acts.do_post, "reply": acts.do_reply, "follow": acts.do_follow,
+         "like": acts.do_like, "repost": acts.do_repost,
+         "notifications": acts.do_engage_notifications, "harvest": acts.do_harvest}
+
+    beacon = Beacon("worker", every=15).start()
+    loop = Loop(weights=Weights(),
+                tick_min=float(os.environ.get("TICK_MIN", 60)),
+                tick_max=float(os.environ.get("TICK_MAX", 300)))
+
+    last_state = time.time()
+    ticks = 0
+    errors = 0
+    try:
+        while time.time() < DEADLINE:
+            ticks += 1
+            action = loop._pick()
+            fn = H.get(action)
+            if fn is None:
+                time.sleep(loop.tick_min)
+                continue
+            try:
+                fn()
+                errors = max(0, errors - 1)
+            except Exception:
+                errors += 1
+                log(f"{action} crashed:\n{traceback.format_exc()[-500:]}")
+                if errors >= 5:
+                    log("5 falhas seguidas — autofix")
+                    try:
+                        log("autofix: " + json.dumps(autofix.run(), ensure_ascii=False)[:200])
+                    except Exception:
+                        pass
+                    errors = 0
+                time.sleep(min(600, 30 * errors))
+
+            if time.time() - last_state > STATE_EVERY_MIN * 60:
+                last_state = time.time()
+                commit_state(f"tick{ticks}")
+                guard.save()
+
+            # dorme até a próxima decisão, mas nunca passa do deadline
+            nap = loop.tick_min * (1.0 if errors else 0.6)
+            end = min(time.time() + nap, DEADLINE)
+            while time.time() < end:
+                time.sleep(1.0)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        beacon.stop()
+        guard.save()
+        commit_state("final")
+        st = mem.stats(24)
+        log(f"fim — ticks={ticks} stats24h={json.dumps(st, ensure_ascii=False)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
