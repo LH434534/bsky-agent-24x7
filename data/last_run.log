@@ -353,3 +353,13 @@ M  data/spam_state.json
 23:08:56 GH      │ git push --force rc=0 To https://github.com/LH434534/bsky-agent-24x7
    ad913f5..f8027b8  HEAD -> main
 23:08:56 GH      │ estado commitado (tick78)
+23:21:00 GH      │ git status rc=0 -> M  data/corpus.txt
+ M data/hb_worker.json
+M  data/last_run.log
+M  data/spam_state.json
+ M scripts/setup_brain.sh
+?? data/brain_model.txt
+23:21:00 GH      │ git commit rc=0 
+23:21:01 GH      │ git push --force rc=0 To https://github.com/LH434534/bsky-agent-24x7
+   f8027b8..7b57a97  HEAD -> main
+23:21:01 GH      │ estado commitado (tick98)
