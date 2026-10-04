@@ -49,6 +49,7 @@ class Bsky:
         self.did: str | None = None
         self.access: str | None = None
         self.refresh: str | None = None
+        self._last_auth: float = 0.0
         self._handle_cache: Dict[str, str] = {}
 
     # ---------------------------------------------------------------- session
@@ -66,6 +67,7 @@ class Bsky:
             raise ATProtoError(f"login failed {r.status_code}: {r.text[:300]}")
         d = r.json()
         self.did, self.access, self.refresh = d["did"], d["accessJwt"], d["refreshJwt"]
+        self._last_auth = time.time()
         self._save_session()
         log.info("logged in as %s (%s)", self.handle, self.did)
 
@@ -85,6 +87,7 @@ class Bsky:
             with open(self.session_file) as f:
                 d = json.load(f)
             self.did, self.access, self.refresh = d["did"], d["access"], d["refresh"]
+            self._last_auth = time.time()
             return True
         except Exception:
             return False
@@ -98,6 +101,44 @@ class Bsky:
         except Exception as e:
             log.warning("could not persist session: %s", e)
 
+    TOKEN_ERRS = {"ExpiredToken", "InvalidToken", "AuthenticationRequired",
+                  "InvalidJwt", "TokenRevoked"}
+
+    @staticmethod
+    def _is_token_error(r) -> bool:
+        """Detecta token morto tanto por status (401) quanto por corpo (400 ExpiredToken)."""
+        if r.status_code == 401:
+            return True
+        if r.status_code != 400:
+            return False
+        try:
+            err = (r.json() or {}).get("error", "")
+        except Exception:
+            err = ""
+        return err in Bsky.TOKEN_ERRS
+
+    def _reauth(self) -> bool:
+        """Refresh → se falhar, login novo. Retorna True se conseguiu."""
+        for fn in (self._refresh, self.login):
+            try:
+                fn()
+                return True
+            except Exception as e:
+                log.warning("reauth falhou: %s", str(e)[:100])
+        return False
+
+    def ensure_fresh(self, max_age_s: int = 3600) -> None:
+        """Renova proativamente antes de expirar — evita perder escritas."""
+        if self._last_auth and time.time() - self._last_auth < max_age_s:
+            return
+        try:
+            self._refresh()
+        except Exception:
+            try:
+                self.login()
+            except Exception as e:
+                log.warning("ensure_fresh falhou: %s", str(e)[:100])
+
     def _refresh(self) -> None:
         r = self.s.post(
             f"{self.pds}/xrpc/com.atproto.server.refreshSession",
@@ -108,6 +149,7 @@ class Bsky:
             raise ATProtoError(f"refresh failed {r.status_code}: {r.text[:200]}")
         d = r.json()
         self.did, self.access, self.refresh = d["did"], d["accessJwt"], d["refreshJwt"]
+        self._last_auth = time.time()
         self._save_session()
 
     # ------------------------------------------------------------------ http
@@ -134,6 +176,14 @@ class Bsky:
                 wait = max(20, ra - int(time.time())) if ra else min(300, 30 * 2 ** attempt)
                 log.warning("429 on %s — backing off %ss", nsid, wait)
                 time.sleep(wait)
+                continue
+
+            # ATProto devolve 400 {"error":"ExpiredToken"} — não 401.
+            # Sem isso o refresh nunca dispara e todas as escritas falham.
+            if auth and self._is_token_error(r):
+                log.info("token expirou em %s — renovando", nsid)
+                if self._reauth():
+                    continue
                 continue
 
             if r.status_code == 401 and auth and attempt == 0:
@@ -204,6 +254,7 @@ class Bsky:
     # ----------------------------------------------------------------- write
     def post(self, text: str, *, reply_to: PostRef | None = None,
              langs: List[str] | None = None) -> PostRef:
+        self.ensure_fresh()
         text = text.strip()
         if not text:
             raise ValueError("empty post")
@@ -247,6 +298,7 @@ class Bsky:
         return refs
 
     def follow(self, did: str) -> str:
+        self.ensure_fresh()
         d = self._call("POST", "com.atproto.repo.createRecord", body={
             "repo": self.did, "collection": "app.bsky.graph.follow",
             "record": {"$type": "app.bsky.graph.follow", "subject": did,
@@ -259,6 +311,7 @@ class Bsky:
             "repo": self.did, "collection": "app.bsky.graph.follow", "rkey": rkey})
 
     def like(self, uri: str, cid: str) -> str:
+        self.ensure_fresh()
         d = self._call("POST", "com.atproto.repo.createRecord", body={
             "repo": self.did, "collection": "app.bsky.feed.like",
             "record": {"$type": "app.bsky.feed.like",
@@ -267,6 +320,7 @@ class Bsky:
         return d["uri"]
 
     def repost(self, uri: str, cid: str) -> str:
+        self.ensure_fresh()
         d = self._call("POST", "com.atproto.repo.createRecord", body={
             "repo": self.did, "collection": "app.bsky.feed.repost",
             "record": {"$type": "app.bsky.feed.repost",
