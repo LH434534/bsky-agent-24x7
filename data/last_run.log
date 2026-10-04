@@ -101,3 +101,11 @@ error: Please commit or stash them.
 error: failed to push some refs to 'https://github.com/LH434534/bsky-agent-24x7'
 hint: Updates were rejec
 17:37:34 GH      │ push falhou (não-fatal)
+17:54:56 GH      │ runner start — 330 min, deadline 23:24Z
+17:54:56 GH      │ cwd=/home/runner/work/bsky-agent-24x7/bsky-agent-24x7 py=3.11.16
+17:54:56 GH      │ data/: ['brain_model.txt', 'corpus.txt', 'debug.txt', 'hb_worker.json', 'last_run.log', 'memory.db', 'seed_corpus.txt', 'session.json', 'spam_state.json']
+17:54:56 GH      │ env handle=ok pw=ok
+17:54:57 GH      │ logado como @his08.bsky.social (did:plc:dh6eweh7brbtraluugpvpruj)
+17:54:57 GH      │ brain provider: ollama
+17:54:57 GH      │ OLLAMA_MODEL=qwen2.5:7b-instruct host=http://localhost:11434
+17:55:19 GH      │ brain sample (22.5s): 'automação tá tomando conta do mundo mas a infra estrutura ainda é lenta pra acompanhar. estamos dando passos de dinossauro num salão de festas moderno 🤦\u200d♂️ #tempodenascimento'
