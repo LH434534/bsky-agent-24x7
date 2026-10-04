@@ -1,63 +1,57 @@
-automation is only worth it if the thing you automated runs more than once a week.
-most people build the pipeline and then forget nobody is watching the pipeline.
-the boring backup that restores is worth ten clever ones that never get tested.
-shipping something small every day beats planning something big for a month.
-your infrastructure is not complicated, it is just undocumented.
-the hardest part of self hosting is not the setup, it is the upgrade six months later.
-nobody reads logs until the outage, then everybody reads logs.
-a cron job without alerting is just a hope with extra steps.
-good tooling disappears, bad tooling needs a wiki page.
-the fastest feedback loop wins, not the best architecture.
-writing the test after the bug is still better than not writing the test.
-you do not need a platform, you need a script and a place to run it.
-every abstraction you add is a bet that the future looks like today.
-the bug was dns, it is always dns.
-containers did not remove complexity, they moved it somewhere you stopped looking.
-most performance problems are one query wearing a disguise.
-if it is not in version control it does not exist.
-the second implementation is always better because now you know the shape of the problem.
-technical debt is fine until it is in the path of everything you want to do next.
-a tool you understand beats a framework you have to read about.
-the log line you skipped is the one that would have saved you an hour.
-automation without ownership rots in about three weeks.
-measure first, the slow part is never where you are certain it is.
-caching is easy, invalidation is the whole job.
-the best documentation is a working example someone can copy.
-most outages are recovered by rolling back, not by debugging under pressure.
-you cannot scale a process you never wrote down.
-testing in production is a spectrum and you are already somewhere on it.
-every config file grows until it needs its own config file.
-the migration is easy, the rollback is the project.
-small teams win by deciding faster, not by knowing more.
-read the source, it is shorter than the thread about it.
-if the alert fires and nobody acts, delete the alert.
-the tool is rarely the bottleneck, the meeting about the tool usually is.
-ship the ugly version, you can only fix what exists.
-a good error message is a feature and most software has none.
-the system works because somebody remembers how, and that is the risk.
-backups you have never restored are not backups.
-complexity is not a sign of sophistication, it is usually a sign of hurry.
-the fastest way to learn an api is to break it once on purpose.
-if two things must happen in order, something will eventually happen out of order.
-automate the decision, not just the action.
-the fix is one flag, the investigation is the afternoon.
-every queue eventually becomes a database.
-observability is not three dashboards, it is being able to answer a new question quickly.
-the code is easy, the migration of the people using it is hard.
-nobody regrets deleting the feature nobody used.
-dependency updates are a chore until the day they are an incident.
-the best monitoring alert is the one that tells you what to do next.
-a script that runs in five seconds gets used, one that takes five minutes does not.
-the hardest bug I ever fixed was a race condition that only happened on fridays.
-good defaults are a form of kindness to your future self.
-you will read this code again in a year and you will not remember why.
-write the comment you will need, not the comment that describes the line.
-nobody has ever regretted naming a variable clearly.
-the second time you solve a problem you should leave a script behind.
-automation is a muscle, you either use it or you pay for it in clicks.
-speed comes from removing steps, not from doing the remaining steps faster.
-if it hurts, do it more often until it stops hurting.
-the terminal is not scary, it is just a place with no buttons.
-every good engineer I know has a folder of scripts they are slightly ashamed of.
-the trick is not knowing everything, it is knowing what to ignore today.
-shipping is a skill separate from building and almost nobody practices it.
+hoje o dia tá estranho e eu não sei explicar direito o porquê
+gente sério ninguém comenta como café da tarde salva o dia
+eu reparando agora que o tempo passou rápido demais esse ano
+alguém mais acha que final de semana dura menos que segunda feira
+tô tentando acordar cedo faz uns dias e ainda não peguei o jeito
+não vou mentir esse jogo novo me ganhou a semana inteira
+acabei de perceber que faz tempo que não converso com uns amigos
+meio estranho dizer isso mas ouvir música enquanto faço tudo melhorou meu dia
+todo mundo fala de começar academia e eu continuo sem entender o hype
+fazendo nada agora e honestamente tá sendo melhor do que eu esperava
+putz esqueci completamente do aniversário de alguém e agora tô correndo atrás
+a melhor parte do meu dia foi jogar um pouco antes de dormir
+tá um calor absurdo hoje e eu sem energia pra nada
+segunda feira tem um gosto específico que eu não consigo descrever
+a internet tá lenta e minha paciência também
+comprei um lanche que custou caro demais pelo tamanho
+fiquei até tarde vendo série e agora tô pagando o preço
+descobri uma música que não sai da minha cabeça faz três dias
+o clima virou do nada e eu sem casaco
+tô com uma preguiça que não é normal
+saí pra caminhar e voltei melhor do que esperava
+meu celular tá pedindo socorro e eu ignorando
+hoje foi um daqueles dias que nada dá certo mas tudo bem
+a cidade tá cheia e eu só queria paz
+consegui terminar uma coisa que tava adiando faz tempo
+chegou sexta e a sensação é sempre a mesma de alívio
+tem gente que fala demais e eu só escutando
+o café de hoje saiu melhor que o de ontem e isso importa
+tô tentando organizar minhas coisas e é mais difícil do que parece
+recebi uma mensagem que me fez rir sozinho no meio da rua
+acabei de voltar do mercado e esqueci metade da lista
+futebol de domingo tem um peso diferente na semana
+a expectativa pro final de semana é maior que o final de semana
+fiquei pensando em como as coisas mudaram em pouco tempo
+não consigo decidir o que fazer e o tempo tá passando
+a chuva chegou e mudou completamente o plano do dia
+tô com sono mas não consigo dormir, clássico
+consegui dormir cedo ontem e hoje parece outro dia
+descobri que gosto de cozinhar quando não tenho pressa
+fui na praia e voltei exausto mas vale muito a pena
+o trânsito hoje tava de um jeito que testou minha paciência
+comprei algo que não precisava e não me arrependo nem um pouco
+tô aprendendo uma coisa nova e errando bastante no processo
+hoje o dia foi tão tranquilo que chega a ser suspeito
+recebi uma notícia boa e fiquei meio sem saber o que fazer
+faz tempo que não vejo um filme que me prende do começo ao fim
+a sensação de terminar algo é sempre melhor que a de começar
+tô tentando entender uma coisa faz horas e ainda não cheguei lá
+a música que eu ouvi hoje combinou perfeitamente com o dia
+saí sem pressa e foi a melhor decisão do dia
+hoje deu vontade de não fazer nada e eu aceitei
+o dia começou mal e terminou melhor do que eu esperava
+comi algo muito bom e agora queria ter comprado dois
+fiquei conversando até tarde e esqueci da hora completamente
+tô com aquela sensação de que esqueci alguma coisa importante
+o final de semana passou e eu nem vi
+hoje o dia tá bom o suficiente e isso já tá ótimo
