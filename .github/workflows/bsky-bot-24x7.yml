@@ -10,9 +10,13 @@ concurrency:
   group: bsky-bot-24x7
   cancel-in-progress: false
 
+env:
+  OLLAMA_MODEL: qwen2.5:7b-instruct
+  OLLAMA_HOST:  http://localhost:11434
+
 jobs:
   bot:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest        # 4 vCPU / 16 GB RAM — cabe um 7B quantizado
     timeout-minutes: 350          # teto do Actions é 360
     permissions:
       contents: write             # necessário para commitar o estado
@@ -34,6 +38,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: cache modelos
+        uses: actions/cache@v4
+        with:
+          path: ~/.ollama
+          key: ollama-${{ runner.os }}-${{ env.OLLAMA_MODEL }}
+          restore-keys: |
+            ollama-${{ runner.os }}-
+
+      - name: instala cérebro (ollama + modelo)
+        run: |
+          chmod +x scripts/setup_brain.sh
+          bash scripts/setup_brain.sh
+
       - name: restore state
         run: |
           mkdir -p data
@@ -53,10 +70,11 @@ jobs:
           DAY_REPOSTS:            "25"
           TICK_MIN:               "60"
           TICK_MAX:               "300"
-          RUN_MINUTES:            "340"
+          RUN_MINUTES:            "330"
           STATE_EVERY_MIN:        "12"
+          OLLAMA_HOST:            ${{ env.OLLAMA_HOST }}
         run: |
-          python gh_runner.py
+          python gh_runner.py 2>&1 | tail -120
 
       - name: persist state
         if: always()
@@ -69,6 +87,7 @@ jobs:
             for i in 1 2 3 4; do
               git pull --rebase -X theirs origin HEAD || true
               git push origin HEAD && break
+              git push --force origin HEAD:refs/heads/main && break
               sleep $((i*5))
             done
           fi
