@@ -1,0 +1,63 @@
+automation is only worth it if the thing you automated runs more than once a week.
+most people build the pipeline and then forget nobody is watching the pipeline.
+the boring backup that restores is worth ten clever ones that never get tested.
+shipping something small every day beats planning something big for a month.
+your infrastructure is not complicated, it is just undocumented.
+the hardest part of self hosting is not the setup, it is the upgrade six months later.
+nobody reads logs until the outage, then everybody reads logs.
+a cron job without alerting is just a hope with extra steps.
+good tooling disappears, bad tooling needs a wiki page.
+the fastest feedback loop wins, not the best architecture.
+writing the test after the bug is still better than not writing the test.
+you do not need a platform, you need a script and a place to run it.
+every abstraction you add is a bet that the future looks like today.
+the bug was dns, it is always dns.
+containers did not remove complexity, they moved it somewhere you stopped looking.
+most performance problems are one query wearing a disguise.
+if it is not in version control it does not exist.
+the second implementation is always better because now you know the shape of the problem.
+technical debt is fine until it is in the path of everything you want to do next.
+a tool you understand beats a framework you have to read about.
+the log line you skipped is the one that would have saved you an hour.
+automation without ownership rots in about three weeks.
+measure first, the slow part is never where you are certain it is.
+caching is easy, invalidation is the whole job.
+the best documentation is a working example someone can copy.
+most outages are recovered by rolling back, not by debugging under pressure.
+you cannot scale a process you never wrote down.
+testing in production is a spectrum and you are already somewhere on it.
+every config file grows until it needs its own config file.
+the migration is easy, the rollback is the project.
+small teams win by deciding faster, not by knowing more.
+read the source, it is shorter than the thread about it.
+if the alert fires and nobody acts, delete the alert.
+the tool is rarely the bottleneck, the meeting about the tool usually is.
+ship the ugly version, you can only fix what exists.
+a good error message is a feature and most software has none.
+the system works because somebody remembers how, and that is the risk.
+backups you have never restored are not backups.
+complexity is not a sign of sophistication, it is usually a sign of hurry.
+the fastest way to learn an api is to break it once on purpose.
+if two things must happen in order, something will eventually happen out of order.
+automate the decision, not just the action.
+the fix is one flag, the investigation is the afternoon.
+every queue eventually becomes a database.
+observability is not three dashboards, it is being able to answer a new question quickly.
+the code is easy, the migration of the people using it is hard.
+nobody regrets deleting the feature nobody used.
+dependency updates are a chore until the day they are an incident.
+the best monitoring alert is the one that tells you what to do next.
+a script that runs in five seconds gets used, one that takes five minutes does not.
+the hardest bug I ever fixed was a race condition that only happened on fridays.
+good defaults are a form of kindness to your future self.
+you will read this code again in a year and you will not remember why.
+write the comment you will need, not the comment that describes the line.
+nobody has ever regretted naming a variable clearly.
+the second time you solve a problem you should leave a script behind.
+automation is a muscle, you either use it or you pay for it in clicks.
+speed comes from removing steps, not from doing the remaining steps faster.
+if it hurts, do it more often until it stops hurting.
+the terminal is not scary, it is just a place with no buttons.
+every good engineer I know has a folder of scripts they are slightly ashamed of.
+the trick is not knowing everything, it is knowing what to ignore today.
+shipping is a skill separate from building and almost nobody practices it.
