@@ -70,16 +70,17 @@ def commit_state(tag: str) -> bool:
     log(f"git commit rc={rc} {out.strip()[:150]}")
     if rc != 0:
         return False
-    # só o bot escreve data/ — force-push é a estratégia primária.
-    # (pull --rebase falha porque o beacon reescreve hb_worker.json entre add e pull)
-    rc, err = sh("git", "push", "--force", "origin", "HEAD:refs/heads/main", timeout=180)
-    log(f"git push --force rc={rc} {err.strip()[:200]}")
+    # NUNCA empurra para main: um job antigo force-pushando main apagaria
+    # arquivos de código novos (já aconteceu — core/agency.py sumiu).
+    # O estado vai para o branch 'state', que só carrega data/.
+    rc, err = sh("git", "push", "--force", "origin", "HEAD:refs/heads/state", timeout=180)
+    log(f"git push state rc={rc} {err.strip()[:200]}")
     if rc == 0:
         log(f"estado commitado ({tag})")
         return True
     for attempt in range(3):
-        rc, err = sh("git", "push", "origin", "HEAD", timeout=180)
-        log(f"git push rc={rc} {err.strip()[:150]}")
+        rc, err = sh("git", "push", "--force", "origin", "HEAD:refs/heads/state", timeout=180)
+        log(f"git push state (retry {attempt}) rc={rc} {err.strip()[:150]}")
         if rc == 0:
             return True
         time.sleep(5 * (attempt + 1))
