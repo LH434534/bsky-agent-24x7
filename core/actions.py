@@ -31,22 +31,33 @@ SELF_PROMO_HINTS = ["giveaway", "airdrop", "promo", "discount code", "casino", "
 
 class Actions:
     def __init__(self, bsky: Bsky, brain: Brain, guard: SpamGuard, mem: Memory,
-                 queries: Optional[List[str]] = None, persona_topics: Optional[List[str]] = None):
+                 queries: Optional[List[str]] = None, persona_topics: Optional[List[str]] = None,
+                 agency: Optional[Any] = None):
         self.b = bsky
         self.brain = brain
         self.g = guard
         self.m = mem
         self.queries = queries or DEFAULT_QUERIES
         self.persona_topics = persona_topics or []
+        self.A = agency
 
     # ─────────────────────────────────────────────────────────────── helpers
     def _topic(self) -> str:
+        """Assunto vem dos interesses dele (que evoluíram), não de lista fixa."""
+        if self.A is not None:
+            t = self.A.next_topic(self.persona_topics)
+            self.m.use_topic(t)
+            return t
         pool = self.persona_topics or self.brain.pick_topics(3)
         if not pool:
             return "automation"
         t = random.choice(pool)
         self.m.use_topic(t)
         return t
+
+    def _mood(self) -> str:
+        """Humor atual injetado no prompt — muda o tom do texto."""
+        return self.A.mood_hint() if self.A is not None else ""
 
     def _act(self, kind: str) -> bool:
         ok, why = self.g.ok(kind)
@@ -103,7 +114,10 @@ class Actions:
         ])
         if random.random() < 0.12:
             return self.do_thread(topic)
-        text = self.brain.write_post(topic, style=style)
+        text = self.brain.write_post(topic, style=style, mood=self._mood())
+        # já disse algo parecido? gente real não se repete
+        if self.A is not None and self.A.mind.has_said_similar(text):
+            text = self.brain.write_post(self._topic(), style=style, mood=self._mood())
         return self._post_text(text)
 
     def do_thread(self, topic: str = "") -> bool:
@@ -137,6 +151,55 @@ class Actions:
             self.m.use_topic(topic)
             log.info("THREAD (%d) on %s", len(refs), topic)
             return True
+        return False
+
+    def browse(self, n: int = 8) -> List[Dict[str, Any]]:
+        """Só olhar o feed — sem compromisso de agir. É o que gente mais faz.
+
+        Devolve posts crus (não ranqueados) para o motor autônomo formar
+        estado interno antes de decidir qualquer coisa.
+        """
+        out: List[Dict[str, Any]] = []
+        try:
+            out += [f["post"] for f in self.b.timeline(limit=max(n, 6))]
+        except Exception as e:
+            log.debug("timeline failed: %s", e)
+        if len(out) < n:
+            try:
+                out += self.b.search_posts(random.choice(self.queries), limit=n, sort="latest")
+            except Exception as e:
+                log.debug("search failed: %s", e)
+        items = []
+        for p in out[: max(n * 2, 12)]:
+            rec = p.get("record", {}) or {}
+            text = (rec.get("text") or "").strip()
+            author = p.get("author") or {}
+            if not text or author.get("did") == self.b.did:
+                continue
+            items.append({
+                "uri": p.get("uri", ""),
+                "cid": p.get("cid", ""),
+                "text": text,
+                "did": author.get("did", ""),
+                "handle": author.get("handle", ""),
+                "topic": " ".join(text.split()[:3]),
+                "likes": p.get("likeCount", 0) or 0,
+            })
+        # alimenta o cérebro offline com linguagem viva
+        self.brain.offline.feed([i["text"] for i in items])
+        return items
+
+    def has_pending_notifications(self) -> bool:
+        """Tem alguém esperando resposta? Isso tem prioridade sobre tudo."""
+        try:
+            notes = self.b.notifications(limit=15)
+        except Exception:
+            return False
+        for n in notes:
+            if n.get("isRead"):
+                continue
+            if n.get("reason") in ("reply", "mention"):
+                return True
         return False
 
     def _candidates(self) -> List[Dict[str, Any]]:
