@@ -383,3 +383,21 @@ M  data/spam_state.json
 23:53:08 GH      │ brain provider: ollama
 23:53:08 GH      │ OLLAMA_MODEL=qwen2.5:7b-instruct host=http://localhost:11434
 23:54:32 GH      │ brain sample (83.8s): 'A gente fala muito de apps legais mas a infra estrutura das empresas tá pra rachar. É hora de investir na base antes de toda essa automação. Bah'
+00:07:21 GH      │ runner start — 330 min, deadline 05:37Z
+00:07:21 GH      │ cwd=/home/runner/work/bsky-agent-24x7/bsky-agent-24x7 py=3.11.16
+00:07:21 GH      │ RunnerGH v5 (autônomo) — módulos: agency/autonomy/persona
+00:07:21 GH      │ data/: ['brain_model.txt', 'corpus.txt', 'debug.txt', 'hb_worker.json', 'last_run.log', 'memory.db', 'seed_corpus.txt', 'session.json', 'spam_state.json']
+00:07:21 GH      │ env handle=ok pw=ok
+00:07:21 GH      │ logado como @his08.bsky.social (did:plc:dh6eweh7brbtraluugpvpruj)
+00:07:22 GH      │ brain provider: ollama
+00:07:22 GH      │ OLLAMA_MODEL=qwen2.5:7b-instruct host=http://localhost:11434
+00:07:54 GH      │ brain sample (32.2s): 'Ainda tem gente achar que infraestrutura não tá ligada na automatização? É a base pra tudo moderno né'
+00:07:54 GH      │ EXCEÇÃO FATAL (topo):
+Traceback (most recent call last):
+  File "/home/runner/work/bsky-agent-24x7/bsky-agent-24x7/gh_runner.py", line 221, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/runner/work/bsky-agent-24x7/bsky-agent-24x7/gh_runner.py", line 153, in main
+    from core.agency import Agency
+ModuleNotFoundError: No module named 'core.agency'
+
