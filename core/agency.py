@@ -269,6 +269,8 @@ class Agency:
     ticks: int = 0
     idle_until: float = 0.0
     _seed_topics: List[str] = field(default_factory=list)
+    _wants_visit: str = ""          # nome de alguém que ele quer ir ver
+    _wants_visit_at: float = 0.0
 
     # ───────────────────────────────────────────────────────── persistência
     def save(self) -> None:
@@ -425,7 +427,11 @@ class Agency:
             if r < 0.62:
                 return "repost", "vale repassar"
 
-        # 6) seguir gente nova
+        # 6) lembrar de alguém e ir ver o que ela postou — iniciativa, não reação
+        if self._wants_visit and i.curiosidade > 0.40 and random.random() < 0.35:
+            return "visit", f"faz tempo que não vejo o que {self._wants_visit} postou"
+
+        # 7) seguir gente nova
         if i.curiosidade > 0.45 and random.random() < 0.28:
             return "follow", "quero seguir gente nova"
 
@@ -488,6 +494,21 @@ class Agency:
                 base *= 0.55                      # scrollando: passa rápido
             return min(base, 900)
         return 0.0
+
+    def wants_to_visit(self, people: List) -> None:
+        """Lembrar de alguém: 'faz tempo que não vejo o que fulano postou'.
+
+        A intenção fica guardada por até 6 h. Se ele não esbarrar com a pessoa
+        no feed, acaba indo atrás dela — isso é iniciativa, não reação.
+        """
+        if not people:
+            return
+        p = random.choice(people)
+        self._wants_visit = f"@{p.handle}" if p.handle else "alguém"
+        self._wants_visit_at = time.time()
+
+    def visit_expired(self) -> bool:
+        return time.time() - self._wants_visit_at > 6 * 3600
 
     # ────────────────────────────────────────────────────────── assuntos
     def next_topic(self, seed: Optional[List[str]] = None) -> str:
