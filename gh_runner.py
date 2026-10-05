@@ -90,6 +90,7 @@ def commit_state(tag: str) -> bool:
 def main() -> int:
     log(f"runner start — {RUN_MINUTES:.0f} min, deadline {time.strftime('%H:%MZ', time.gmtime(DEADLINE))}")
     log(f"cwd={ROOT} py={sys.version.split()[0]}")
+    log(f"RunnerGH v5 (autônomo) — módulos: agency/autonomy/persona")
     log(f"data/: {sorted(p.name for p in DATA.glob('*')) if DATA.exists() else 'vazio'}")
     log(f"env handle={'ok' if os.environ.get('BSKY_HANDLE') else 'FALTANDO'} "
         f"pw={'ok' if os.environ.get('BSKY_APP_PASSWORD') else 'FALTANDO'}")
@@ -201,6 +202,9 @@ def main() -> int:
         engine.run(until_ts=DEADLINE)
     except KeyboardInterrupt:
         pass
+    except BaseException:
+        log("EXCEÇÃO FATAL:\n" + traceback.format_exc()[-1500:])
+        raise
     finally:
         beacon.stop()
         guard.save()
@@ -213,4 +217,11 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except BaseException:
+        try:
+            log("EXCEÇÃO FATAL (topo):\n" + traceback.format_exc()[-1500:])
+        except Exception:
+            traceback.print_exc()
+        raise
