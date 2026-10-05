@@ -55,7 +55,8 @@ def commit_state(tag: str) -> bool:
     sh("git", "config", "user.email", "bot@users.noreply.github.com")
     sh("git", "config", "user.name", "bsky-bot")
     keep = ["memory.db", "corpus.txt", "spam_state.json", "session.json",
-            "autofix_state.json", "last_run.log", "agent.log", "agency_state.json"]
+            "autofix_state.json", "last_run.log", "agent.log", "agency_state.json",
+            "social_state.json"]
     for p in keep:
         f = DATA / p
         if f.exists():
@@ -161,17 +162,24 @@ def main() -> int:
     # garante que os arquivos de agência entrem no primeiro commit
     A.save()
     (DATA / "agent.log").touch()
+    (DATA / "social_state.json").touch()
 
-    acts = Actions(bsky, brain, guard, mem, agency=A)
+    from core.social import Social
+    S = Social(DATA / "social_state.json")
+    log(f"social: {S.describe()}")
+
+    acts = Actions(bsky, brain, guard, mem, agency=A, social=S)
     H = {"post": acts.do_post, "reply": acts.do_reply, "follow": acts.do_follow,
          "like": acts.do_like, "repost": acts.do_repost,
-         "notifications": acts.do_engage_notifications, "harvest": acts.do_harvest}
+         "notifications": acts.do_engage_notifications, "harvest": acts.do_harvest,
+         "visit": acts.do_visit}
 
     beacon = Beacon("worker", every=15).start()
 
     def flush():
         guard.save()
         A.save()
+        S.save()
 
     last_state = time.time()
 
@@ -205,6 +213,7 @@ def main() -> int:
         feed_provider=lambda n: acts.browse(n),
         notif_check=acts.has_pending_notifications,
         on_flush=flush_and_commit,
+        social=S,
         heartbeat=lambda: None,
     )
 
@@ -219,10 +228,12 @@ def main() -> int:
         beacon.stop()
         guard.save()
         A.save()
+        S.save()
         commit_state("final")
         st = mem.stats(24)
         log(f"fim — deliberações={A.ticks} stats24h={json.dumps(st, ensure_ascii=False)}")
         log(f"agência final: {A.describe()}")
+        log(f"social final: {S.describe()}")
     return 0
 
 
