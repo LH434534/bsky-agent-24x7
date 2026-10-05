@@ -42,13 +42,15 @@ class Autonomous:
                  feed_provider: Optional[Callable[[int], List[dict]]] = None,
                  notif_check: Optional[Callable[[], bool]] = None,
                  on_flush: Optional[Callable[[], None]] = None,
-                 heartbeat: Optional[Callable[[], None]] = None):
+                 heartbeat: Optional[Callable[[], None]] = None,
+                 social: Optional[object] = None):
         self.A = agency
         self.H = handlers
         self.feed = feed_provider or (lambda n: [])
         self.notifs = notif_check or (lambda: False)
         self.flush = on_flush or (lambda: None)
         self.hb = heartbeat or (lambda: None)
+        self.S = social
         self.running = True
         self.stats: Dict[str, int] = {}
 
@@ -147,7 +149,19 @@ class Autonomous:
         except Exception:
             pass
 
-        # 3) delibera
+        # 3) grafo social deriva e pode gerar vontade de visitar alguém
+        if self.S is not None:
+            try:
+                self.S.tick()
+            except Exception:
+                pass
+            if not self.A._wants_visit or self.A.visit_expired():
+                try:
+                    self.A.wants_to_visit(self.S.who_to_visit(3))
+                except Exception:
+                    pass
+
+        # 4) delibera
         kind, reason = self.A.decide(have_notifs=have_notifs, candidates=items)
         self.act(kind, reason)
 
