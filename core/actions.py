@@ -32,7 +32,7 @@ SELF_PROMO_HINTS = ["giveaway", "airdrop", "promo", "discount code", "casino", "
 class Actions:
     def __init__(self, bsky: Bsky, brain: Brain, guard: SpamGuard, mem: Memory,
                  queries: Optional[List[str]] = None, persona_topics: Optional[List[str]] = None,
-                 agency: Optional[Any] = None):
+                 agency: Optional[Any] = None, social: Optional[Any] = None):
         self.b = bsky
         self.brain = brain
         self.g = guard
@@ -40,6 +40,7 @@ class Actions:
         self.queries = queries or DEFAULT_QUERIES
         self.persona_topics = persona_topics or []
         self.A = agency
+        self.S = social
 
     # ─────────────────────────────────────────────────────────────── helpers
     def _topic(self) -> str:
@@ -58,6 +59,10 @@ class Actions:
     def _mood(self) -> str:
         """Humor atual injetado no prompt — muda o tom do texto."""
         return self.A.mood_hint() if self.A is not None else ""
+
+    def _curiosity(self) -> float:
+        """Curiosidade atual — abre espaço pra gente nova no grafo social."""
+        return getattr(self.A.inner, "curiosidade", 0.6) if self.A is not None else 0.6
 
     def _act(self, kind: str) -> bool:
         ok, why = self.g.ok(kind)
@@ -187,6 +192,11 @@ class Actions:
             })
         # alimenta o cérebro offline com linguagem viva
         self.brain.offline.feed([i["text"] for i in items])
+        # e o grafo social: ver alguém postar já conta como convivência
+        if self.S is not None:
+            for i in items:
+                if i["did"]:
+                    self.S.note_seen(i["did"], i["handle"], i["text"], i.get("topic", ""))
         return items
 
     def has_pending_notifications(self) -> bool:
@@ -251,11 +261,16 @@ class Actions:
     def do_reply(self) -> bool:
         if not self._act("reply"):
             return False
-        for cand in self._candidates():
+        cands = self._candidates()
+        # ordena por RELAÇÃO: quem ele conhece vem antes do post mais popular
+        if self.S is not None:
+            cands = self.S.rank(cands, "reply", self._curiosity())
+        for cand in cands:
             if not self.brain.judge_reply(cand["text"]):
                 self.m.mark_seen(cand["uri"])
                 continue
-            text = self.brain.write_reply(cand["text"], cand["handle"])
+            ctx = self.S.context_for(cand["did"]) if self.S is not None else ""
+            text = self.brain.write_reply(cand["text"], cand["handle"], context=ctx)
             clean = self._safe(text)
             if not clean:
                 self.m.mark_seen(cand["uri"])
@@ -274,6 +289,9 @@ class Actions:
             self.g.record("reply")
             self.g.remember_text(clean)
             self.g.touch(cand["did"])
+            if self.S is not None:
+                self.S.note_reply(cand["did"], cand["handle"],
+                                  " ".join(cand["text"].split()[:3]))
             self.m.mark_seen(cand["uri"])
             self.m.log_action("reply", text=clean, target_did=cand["did"],
                               target_handle=cand["handle"], uri=ref.uri)
@@ -286,10 +304,17 @@ class Actions:
             return False
         cands = self._candidates()
         random.shuffle(cands)
+        if self.S is not None:
+            cands = self.S.rank(cands, "follow", self._curiosity())
         for c in cands[:6]:
             did, handle = c["did"], c["handle"]
             if self.m.is_following(did) or not self.g.target_ok(did):
                 continue
+            if self.S is not None:
+                p = self.S.get(did, handle)
+                # seguir é compromisso: precisa de confiança E afinidade
+                if p.confianca < 0.30 and p.visto < 3:
+                    continue
             try:
                 prof = self.b.profile(handle) or {}
             except Exception:
@@ -320,6 +345,8 @@ class Actions:
                 continue
             self.g.record("follow")
             self.g.touch(did)
+            if self.S is not None:
+                self.S.note_follow(did, handle)
             self.m.mark_follow(did, handle)
             self.m.log_action("follow", target_did=did, target_handle=handle, uri=uri)
             log.info("FOLLOWED @%s", handle)
@@ -330,7 +357,10 @@ class Actions:
         if not self._act("like"):
             return False
         cands = [c for c in self._candidates() if c["score"] > 0]
-        random.shuffle(cands)
+        if self.S is not None:
+            cands = self.S.rank(cands, "like", self._curiosity())
+        else:
+            random.shuffle(cands)
         n = random.randint(1, 4)
         done = 0
         for c in cands[:n]:
@@ -341,6 +371,8 @@ class Actions:
                 continue
             self.g.record("like")
             self.g.touch(c["did"])
+            if self.S is not None:
+                self.S.note_like(c["did"], c["handle"], " ".join(c["text"].split()[:3]))
             self.m.mark_seen(c["uri"])
             self.m.log_action("like", target_did=c["did"], target_handle=c["handle"], uri=c["uri"])
             done += 1
@@ -355,7 +387,10 @@ class Actions:
         if not self._act("repost"):
             return False
         cands = [c for c in self._candidates() if c["score"] > 4]
-        random.shuffle(cands)
+        if self.S is not None:
+            cands = self.S.rank(cands, "repost", self._curiosity())
+        else:
+            random.shuffle(cands)
         for c in cands[:3]:
             try:
                 self.b.repost(c["uri"], c["raw"]["cid"])
@@ -364,6 +399,8 @@ class Actions:
                 continue
             self.g.record("repost")
             self.g.touch(c["did"])
+            if self.S is not None:
+                self.S.note_like(c["did"], c["handle"], " ".join(c["text"].split()[:3]))
             self.m.mark_seen(c["uri"])
             self.m.log_action("repost", target_did=c["did"], target_handle=c["handle"], uri=c["uri"])
             log.info("REPOSTED @%s", c["handle"])
@@ -390,7 +427,12 @@ class Actions:
             text = (n.get("record", {}) or {}).get("text", "")
             if not text:
                 continue
-            reply = self._safe(self.brain.write_reply(text, handle))
+            # quem te respondeu ganha reciprocidade — é o sinal mais forte que existe
+            if self.S is not None:
+                self.S.note_got_reply(did, handle)
+                self.S.note_mutual(did)
+            ctx = self.S.context_for(did) if self.S is not None else ""
+            reply = self._safe(self.brain.write_reply(text, handle, context=ctx))
             if not reply:
                 continue
             try:
@@ -400,9 +442,63 @@ class Actions:
             self.g.record("reply")
             self.g.remember_text(reply)
             self.g.touch(did)
+            if self.S is not None:
+                self.S.note_reply(did, handle, " ".join(text.split()[:3]))
             self.m.log_action("reply", text=reply, target_did=did, target_handle=handle, uri=r.uri)
             log.info("ANSWERED @%s: %s", handle, reply)
             return True
+        return False
+
+    def do_visit(self) -> bool:
+        """Ir olhar o perfil de alguém que ele gosta e faz tempo que não vê.
+
+        Isso é iniciativa — nenhum bot automático faz, porque não vem de um
+        gatilho do feed. Vem de lembrar de alguém.
+        """
+        if self.S is None:
+            return False
+        alvos = self.S.who_to_visit(3)
+        if not alvos:
+            return False
+        for p in alvos:
+            if not p.handle:
+                continue
+            try:
+                feed = self.b.author_feed(p.handle, limit=8)
+            except Exception as e:
+                log.debug("visit %s failed: %s", p.handle, e)
+                continue
+            posts = [(f.get("post", {}) or {}).get("record", {}) or {} for f in feed]
+            textos = [t.get("text", "") for t in posts if t.get("text")]
+            if not textos:
+                continue
+            self.brain.offline.feed(textos)
+            for t in textos:
+                self.S.note_seen(p.did, p.handle, t, " ".join(t.split()[:3]))
+            # achou algo que vale engajar?
+            for f in feed[:5]:
+                post = f.get("post") or {}
+                rec = post.get("record") or {}
+                txt = (rec.get("text") or "").strip()
+                if not txt or self.m.seen(post.get("uri", "")):
+                    continue
+                if not self.brain.judge_reply(txt):
+                    continue
+                ok, _ = self.S.should_engage(p.did, p.handle, "like")
+                if not ok:
+                    continue
+                try:
+                    self.b.like(post["uri"], post["cid"])
+                except Exception:
+                    continue
+                self.g.record("like")
+                self.g.touch(p.did)
+                self.S.note_like(p.did, p.handle, " ".join(txt.split()[:3]))
+                self.m.mark_seen(post["uri"])
+                self.m.log_action("like", target_did=p.did, target_handle=p.handle,
+                                  uri=post["uri"])
+                log.info("VISITOU @%s e curtiu: %s", p.handle, txt[:60])
+                return True
         return False
 
     def do_harvest(self) -> None:
