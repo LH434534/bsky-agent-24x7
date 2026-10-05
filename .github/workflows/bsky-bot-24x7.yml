@@ -48,8 +48,11 @@ jobs:
 
       - name: restore state
         run: |
+          # o estado vive no branch 'state' — main só carrega código.
+          # (assim um job antigo force-pushando nunca apaga arquivos de código)
+          git fetch origin '+refs/heads/*:refs/remotes/origin/*' --depth=1 2>/dev/null || true
           mkdir -p data
-          git checkout HEAD -- data/ 2>/dev/null || true
+          git checkout origin/state -- data/ 2>/dev/null || echo "sem branch state ainda"
           ls -la data/ || true
 
       - name: instala cérebro (ollama + modelo)
@@ -86,9 +89,7 @@ jobs:
           if ! git diff --cached --quiet; then
             git commit -q -m "state: final $(date -u +%Y-%m-%dT%H:%MZ)" || true
             for i in 1 2 3 4; do
-              git pull --rebase -X theirs origin HEAD || true
-              git push origin HEAD && break
-              git push --force origin HEAD:refs/heads/main && break
+              git push --force origin HEAD:refs/heads/state && break
               sleep $((i*5))
             done
           fi
