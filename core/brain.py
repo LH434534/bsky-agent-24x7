@@ -378,11 +378,12 @@ class Brain:
             + (f"\nEstado de espírito agora: {mood}" if mood else ""),
             max_tokens=90, temperature=1.05)
 
-    def write_reply(self, post_text: str, author: str = "") -> str:
+    def write_reply(self, post_text: str, author: str = "", context: str = "") -> str:
+        extra = f"\nContexto: {context}" if context else ""
         return self.gen(
             f"Post de @{author or 'alguém'}:\n\"{post_text}\"\n\n"
             f"Escreva sua resposta. Lembrete: sem abreviações, sem elogio ao post, "
-            f"entre 20 e 160 caracteres.",
+            f"entre 20 e 160 caracteres." + extra,
             system=self.P.reply, max_tokens=70, temperature=1.05)
 
     def pick_topics(self, n: int = 3) -> List[str]:
