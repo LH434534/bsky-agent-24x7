@@ -102,6 +102,7 @@ def handlers(acts: Actions) -> dict:
         "repost": acts.do_repost,
         "notifications": acts.do_engage_notifications,
         "harvest": acts.do_harvest,
+        "visit": acts.do_visit,
     }
 
 
@@ -114,22 +115,49 @@ def cmd_run(a) -> None:
     bsky, brain, guard, mem, acts = build(tz)
     brain.offline._train()
 
-    w = Weights()
-    loop = Loop(weights=w,
-                tick_min=float(os.environ.get("TICK_MIN", 60)),
-                tick_max=float(os.environ.get("TICK_MAX", 300)))
+    # agência: estado interno que delibera, não pesos fixos de um loop
+    from core.agency import Agency
+    from core.autonomy import Autonomous
+    from core.actions import DEFAULT_QUERIES
+    from core.social import Social
+    A = Agency.load(tz_offset=tz)
+    A.seed_topics(DEFAULT_QUERIES)
+    acts.A = A
+    S = Social(DATA / "social_state.json")
+    acts.S = S
 
     def flush():
         guard.save()
+        A.save()
+        S.save()
 
     print(f"\n  agente online  »  @{bsky.handle}  ({bsky.did})")
     print(f"  brain provider »  {brain.pick().name}")
     print(f"  tz local       »  UTC{tz:+d}   quiet hours {guard.limits.quiet_hours}")
+    print(f"  agência        »  {A.describe()}")
     print("  ctrl-c para parar\n")
+    H = handlers(acts)
+
+    def wrap(fn):
+        def _f() -> bool:
+            r = bool(fn())
+            if A.ticks % 6 == 0:
+                flush()
+            return r
+        return _f
+
     try:
-        loop.run(handlers(acts), on_stop=flush)
+        Autonomous(
+            agency=A,
+            handlers={k: wrap(f) for k, f in H.items()},
+            feed_provider=lambda n: acts.browse(n),
+            notif_check=acts.has_pending_notifications,
+            on_flush=flush,
+            social=S,
+        ).run()
     finally:
         guard.save()
+        A.save()
         print(json.dumps(mem.stats(), indent=2, ensure_ascii=False))
 
 
