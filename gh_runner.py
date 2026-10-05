@@ -181,6 +181,15 @@ def main() -> int:
             last_state = time.time()
             commit_state(f"tick{A.ticks}")
 
+    # O motor chama flush() a cada 8 delibeções — mesmo quando o agente está
+    # fora do app e nenhum handler roda. Sem isso o estado nunca é commitado
+    # durante os longos períodos de inatividade (que agora são a maior parte).
+    def flush_and_commit():
+        flush()
+        maybe_commit()
+
+    commit_state("boot")          # primeiro commit: cria o branch state
+
     # envolve os handlers para commitar estado periodicamente
     def wrapped(kind: str):
         fn = H.get(kind)
@@ -195,7 +204,7 @@ def main() -> int:
         handlers={k: wrapped(k) for k in H},
         feed_provider=lambda n: acts.browse(n),
         notif_check=acts.has_pending_notifications,
-        on_flush=flush,
+        on_flush=flush_and_commit,
         heartbeat=lambda: None,
     )
 
