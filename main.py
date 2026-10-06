@@ -103,6 +103,8 @@ def handlers(acts: Actions) -> dict:
         "notifications": acts.do_engage_notifications,
         "harvest": acts.do_harvest,
         "visit": acts.do_visit,
+        "seek": acts.do_seek,
+        "measure": acts.do_measure,
     }
 
 
@@ -123,8 +125,11 @@ def cmd_run(a) -> None:
     A = Agency.load(tz_offset=tz)
     A.seed_topics(DEFAULT_QUERIES)
     acts.A = A
+    from core.growth import Growth
     S = Social(DATA / "social_state.json")
+    G = Growth(DATA / "growth_state.json")
     acts.S = S
+    acts.G = G
 
     def flush():
         guard.save()
@@ -154,6 +159,7 @@ def cmd_run(a) -> None:
             notif_check=acts.has_pending_notifications,
             on_flush=flush,
             social=S,
+            growth=G,
         ).run()
     finally:
         guard.save()
