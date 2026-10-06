@@ -33,7 +33,7 @@ class Actions:
     def __init__(self, bsky: Bsky, brain: Brain, guard: SpamGuard, mem: Memory,
                  queries: Optional[List[str]] = None, persona_topics: Optional[List[str]] = None,
                  agency: Optional[Any] = None, social: Optional[Any] = None,
-                 growth: Optional[Any] = None):
+                 growth: Optional[Any] = None, images: Optional[Any] = None):
         self.b = bsky
         self.brain = brain
         self.g = guard
@@ -43,6 +43,7 @@ class Actions:
         self.A = agency
         self.S = social
         self.G = growth
+        self.I = images
 
     # ─────────────────────────────────────────────────────────────── helpers
     def _topic(self) -> str:
@@ -103,7 +104,7 @@ class Actions:
                 ["algo do seu dia", "uma opinião", "uma pergunta", "algo que você curte"]))
         return None
 
-    def _post_text(self, text: str) -> bool:
+    def _post_text(self, text: str, with_image: bool = False) -> bool:
         """Push through screen + dedupe, then publish."""
         clean = self._safe(text)
         if not clean:
@@ -112,18 +113,56 @@ class Actions:
         if self.g.near_dup(clean):
             self.m.log_action("post", ok=False, err="near-dup")
             return False
+
+        imagens = None
+        if with_image and self.I is not None and self.I.available():
+            try:
+                made = self.I.make(clean, extras=self._mood())
+            except Exception as e:
+                made = None
+                log.info("geração de imagem falhou: %s", str(e)[:100])
+            if made is not None:
+                try:
+                    blob = self.b.upload_blob(made.data, made.mime)
+                    imagens = [{"blob": blob, "alt": made.alt,
+                                "aspect": {"width": 1024, "height": 1024}}]
+                    log.info("IMAGEM anexada (%s, %d KB)", made.provider,
+                             len(made.data) // 1024)
+                except Exception as e:
+                    # upload falhou mas o texto continua valendo — posta sem imagem
+                    log.info("upload da imagem falhou: %s", str(e)[:100])
+                    imagens = None
+
         try:
-            ref = self.b.post(clean)
+            ref = self.b.post(clean, images=imagens)
         except Exception as e:
-            self.m.log_action("post", text=clean, ok=False, err=str(e))
-            if "429" in str(e) or "rate" in str(e).lower():
-                self.g.penalty("429")
-            return False
+            # se o post com imagem falhar, tenta só o texto antes de desistir
+            if imagens:
+                try:
+                    ref = self.b.post(clean)
+                    log.info("post só-texto (imagem recusada)")
+                except Exception as e2:
+                    self.m.log_action("post", text=clean, ok=False, err=str(e2))
+                    return False
+            else:
+                self.m.log_action("post", text=clean, ok=False, err=str(e))
+                if "429" in str(e) or "rate" in str(e).lower():
+                    self.g.penalty("429")
+                return False
         self.g.record("post")
         self.g.remember_text(clean)
         self.m.log_action("post", text=clean, uri=ref.uri)
         self.m.record_reach(ref.uri, clean)
-        log.info("POSTED: %s", clean)
+        if imagens:
+            # conta no teto de imagens separado: sem isso o limite diário de
+            # imagens nunca é aplicado e ele sai postando foto em tudo
+            try:
+                self.g.record("image")
+            except Exception:
+                pass
+            self.m.log_action("image", target_handle=made.provider if made else "",
+                              uri=ref.uri)
+        log.info("POSTED%s: %s", " (com imagem)" if imagens else "", clean)
         return True
 
     # ─────────────────────────────────────────────────────────── behaviours
@@ -147,7 +186,19 @@ class Actions:
         # já disse algo parecido? gente real não se repete
         if self.A is not None and self.A.mind.has_said_similar(text):
             text = self.brain.write_post(self._topic(), style=style, mood=self._mood())
-        return self._post_text(text)
+        com_imagem = self._wants_image()
+        return self._post_text(text, with_image=com_imagem)
+
+    def _wants_image(self) -> bool:
+        """Decide se o post leva imagem. Vem da agência quando existe; senão,
+        uma fração dos posts — todo post com imagem vira poluição visual."""
+        if self.I is None or not self.I.available():
+            return False
+        if self.A is not None and hasattr(self.A, "_wants_image"):
+            if self.A._wants_image():
+                self.A._wants_image_at = 0.0     # consome a intenção
+                return self.g.ok("image")[0] if hasattr(self.g, "ok") else True
+        return random.random() < float(os.environ.get("IMG_RATE", "0.22"))
 
     def do_thread(self, topic: str = "") -> bool:
         if not self._act("post"):
@@ -524,6 +575,29 @@ class Actions:
                 log.info("VISITOU @%s e curtiu: %s", p.handle, txt[:60])
                 return True
         return False
+
+    def do_image(self) -> bool:
+        """Posta uma imagem. Quase sempre é uma foto do que ele está vendo ou
+        fazendo — não uma arte abstracta solta."""
+        if not self._act("post"):
+            return False
+        if self.I is None or not self.I.available():
+            return False
+        if not self.g.ok("image")[0]:
+            return False
+        estilos = [
+            "o que você tá vendo agora",
+            "algo que chamou atenção na rua",
+            "o lugar onde você tá agora",
+            "algo simples que ficou bonito",
+            "um detalhe que só você reparou",
+        ]
+        text = self.brain.write_post(self._topic(), style=random.choice(estilos),
+                                     mood=self._mood())
+        clean = self._safe(text)
+        if not clean:
+            return False
+        return self._post_text(clean, with_image=True)
 
     def do_seek(self) -> bool:
         """Procura ONDE comentar rende mais visibilidade — não comenta em qualquer
