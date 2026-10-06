@@ -46,7 +46,8 @@ class Autonomous:
                  social: Optional[object] = None,
                  conductor: Optional[object] = None,
                  adaptive: Optional[object] = None,
-                 immune: Optional[object] = None):
+                 immune: Optional[object] = None,
+                 growth: Optional[object] = None):
         self.A = agency
         self.H = handlers
         self.feed = feed_provider or (lambda n: [])
@@ -57,6 +58,7 @@ class Autonomous:
         self.C = conductor
         self.AD = adaptive
         self.IM = immune
+        self.G = growth
         self.running = True
         self.stats: Dict[str, int] = {}
 
@@ -107,6 +109,8 @@ class Autonomous:
             return False
         if kind == "thread":
             kind = "post"          # thread é post com mais fôlego
+        if kind == "measure":
+            pass                   # só relatório, entra nas estatísticas igual
         fn = self.H.get(kind)
         if fn is None:
             return False
@@ -158,6 +162,15 @@ class Autonomous:
             have_notifs = bool(self.notifs())
         except Exception:
             pass
+
+        # 3b) intenções de crescimento: medir alcance, procurar oportunidade
+        if self.G is not None:
+            try:
+                self.A.growth_intentions(
+                    (time.time() - self.G.last_measure) / 3600.0
+                    if self.G.last_measure else 99.0)
+            except Exception:
+                pass
 
         # 3) grafo social deriva e pode gerar vontade de visitar alguém
         if self.S is not None:
