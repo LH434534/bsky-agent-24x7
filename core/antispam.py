@@ -34,12 +34,14 @@ class Limits:
     day_follows: int = 60
     day_likes: int = 150
     day_reposts: int = 25
+    day_images: int = 8          # imagem pesa: poucas por dia bastam
     # minimum seconds between actions (jitter added on top)
     gap_posts: int = 2400        # ~40 min
     gap_replies: int = 480       # ~8 min
     gap_follows: int = 300       # 5 min
     gap_likes: int = 45
     gap_reposts: int = 900
+    gap_images: int = 1800       # ~30 min entre posts com imagem
     # bursts
     burst_posts: int = 3
     burst_likes: int = 12
