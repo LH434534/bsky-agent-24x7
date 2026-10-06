@@ -20,7 +20,15 @@ from core.images import (Images, image_prompt, looks_like_image,   # noqa: E402
 
 
 def log(m: str) -> None:
-    print(f"{time.strftime('%H:%M:%S')} IMG-SMOKE │ {m}", flush=True)
+    line = f"{time.strftime('%H:%M:%S')} IMG-SMOKE │ {m}"
+    print(line, flush=True)
+    try:
+        # vai no agent.log, que é commitado no branch state — assim dá pra ler
+        # o resultado do provedor real sem precisar baixar log do Actions
+        with open("/data/workspace/bsky_agent/data/agent.log", "a") as f:
+            f.write(line + "\n")
+    except Exception:
+        pass
 
 
 def main() -> int:
