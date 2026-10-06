@@ -61,6 +61,11 @@ jobs:
           bash scripts/setup_brain.sh
           cat data/brain_model.txt 2>/dev/null || true
 
+      - name: smoke test de imagem
+        continue-on-error: true
+        run: |
+          timeout 300 python3 tests/smoke_image.py 2>&1 | tail -20 || true
+
       - name: run agent
         env:
           BSKY_HANDLE:            ${{ secrets.BSKY_HANDLE }}
