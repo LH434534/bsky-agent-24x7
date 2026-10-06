@@ -252,8 +252,57 @@ class Bsky:
         return len(text)
 
     # ----------------------------------------------------------------- write
+    def upload_blob(self, data: bytes, mime: str = "image/jpeg") -> Dict[str, Any]:
+        """Sobe a imagem e devolve o blob que o post referencia.
+
+        com.atproto.repo.uploadBlob recebe os bytes crus, não JSON. Por isso
+        não passa pelo _call — precisa de Content-Type próprio e corpo binário.
+        """
+        self.ensure_fresh()
+        url = f"{self.pds}/xrpc/com.atproto.repo.uploadBlob"
+        last: Exception | None = None
+        for attempt in range(4):
+            try:
+                r = self.s.post(url,
+                                headers={"Authorization": f"Bearer {self.access}",
+                                         "Content-Type": mime,
+                                         "User-Agent": "bsky-agent/1.0"},
+                                data=data, timeout=120)
+            except requests.RequestException as e:
+                last = e
+                time.sleep(min(60, 5 * 2 ** attempt))
+                continue
+
+            if r.status_code == 429:
+                ra = int(r.headers.get("ratelimit-reset", 0) or 0)
+                time.sleep(max(20, ra - int(time.time())) if ra
+                           else min(300, 30 * 2 ** attempt))
+                continue
+
+            # ATProto manda 400 {"error":"ExpiredToken"} — renovar e repetir
+            if self._is_token_error(r):
+                if self._reauth():
+                    continue
+                continue
+
+            if r.status_code >= 500:
+                time.sleep(min(120, 5 * 2 ** attempt))
+                continue
+
+            if r.status_code >= 400:
+                raise ATProtoError(f"uploadBlob -> {r.status_code}: {r.text[:300]}")
+
+            d = r.json()
+            blob = d.get("blob")
+            if not blob or not blob.get("ref"):
+                raise ATProtoError(f"uploadBlob sem blob: {str(d)[:200]}")
+            return blob
+
+        raise ATProtoError(f"uploadBlob failed after 4 attempts: {last}")
+
     def post(self, text: str, *, reply_to: PostRef | None = None,
-             langs: List[str] | None = None) -> PostRef:
+             langs: List[str] | None = None,
+             images: List[Dict[str, Any]] | None = None) -> PostRef:
         self.ensure_fresh()
         text = text.strip()
         if not text:
@@ -283,6 +332,18 @@ class Bsky:
                 pass
             rec["reply"] = {"root": {"uri": root.uri, "cid": root.cid},
                             "parent": {"uri": parent.uri, "cid": parent.cid}}
+
+        # imagens já sobem como blob antes de chegar aqui; o post só referencia
+        if images:
+            rec["embed"] = {
+                "$type": "app.bsky.embed.images",
+                "images": [
+                    {"alt": (im.get("alt") or "")[:300],
+                     "image": im["blob"],
+                     **({"aspectRatio": im["aspect"]} if im.get("aspect") else {})}
+                    for im in images[:4]        # Bluesky aceita no máximo 4
+                ],
+            }
 
         d = self._call("POST", "com.atproto.repo.createRecord", body={
             "repo": self.did, "collection": "app.bsky.feed.post", "record": rec})
