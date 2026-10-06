@@ -167,14 +167,19 @@ def main() -> int:
     A.save()
     (DATA / "agent.log").touch()
     for f in ("social_state.json", "adaptive_state.json",
-              "immune_state.json", "conductor_state.json", "growth_state.json"):
+              "immune_state.json", "conductor_state.json", "growth_state.json",
+              "images_state.json"):
         (DATA / f).touch()
 
     from core.social import Social
     from core.immune import Immune
     from core.conductor import Conductor
     from core.growth import Growth
+    from core.images import Images
 
+    IMG = Images(DATA / "images_state.json",
+                 enabled=os.environ.get("IMAGES", "1") not in ("0", "", "false"))
+    log(f"imagens: {'ligadas' if IMG.available() else 'desligadas'} · {IMG.describe()}")
     G = Growth(DATA / "growth_state.json")
     log(f"crescimento: {G.describe()}")
     S = Social(DATA / "social_state.json")
@@ -186,11 +191,12 @@ def main() -> int:
                   state_file=DATA / "conductor_state.json")
     log(f"maestro: {C.report()}")
 
-    acts = Actions(bsky, brain, guard, mem, agency=A, social=S, growth=G)
+    acts = Actions(bsky, brain, guard, mem, agency=A, social=S, growth=G, images=IMG)
     H = {"post": acts.do_post, "reply": acts.do_reply, "follow": acts.do_follow,
          "like": acts.do_like, "repost": acts.do_repost,
          "notifications": acts.do_engage_notifications, "harvest": acts.do_harvest,
-         "visit": acts.do_visit, "seek": acts.do_seek, "measure": acts.do_measure}
+         "visit": acts.do_visit, "seek": acts.do_seek, "measure": acts.do_measure,
+         "image": acts.do_image}
 
     beacon = Beacon("worker", every=15).start()
 
@@ -201,6 +207,7 @@ def main() -> int:
         AD.save()
         C.save()
         G.save()
+        IMG.save()
 
     last_state = time.time()
 
@@ -257,6 +264,7 @@ def main() -> int:
         AD.save()
         C.save()
         G.save()
+        IMG.save()
         commit_state("final")
         st = mem.stats(24)
         log(f"fim — deliberações={A.ticks} stats24h={json.dumps(st, ensure_ascii=False)}")
@@ -266,6 +274,7 @@ def main() -> int:
         log(f"parâmetros:\n{AD.report()}")
         log(f"sistema imune:\n{IM.report()}")
         log(f"crescimento:\n{G.report()}")
+        log(f"imagens: {IMG.describe()}")
     return 0
 
 
