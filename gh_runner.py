@@ -167,13 +167,16 @@ def main() -> int:
     A.save()
     (DATA / "agent.log").touch()
     for f in ("social_state.json", "adaptive_state.json",
-              "immune_state.json", "conductor_state.json"):
+              "immune_state.json", "conductor_state.json", "growth_state.json"):
         (DATA / f).touch()
 
     from core.social import Social
     from core.immune import Immune
     from core.conductor import Conductor
+    from core.growth import Growth
 
+    G = Growth(DATA / "growth_state.json")
+    log(f"crescimento: {G.describe()}")
     S = Social(DATA / "social_state.json")
     IM = Immune(DATA / "immune_state.json")
     log(f"social: {S.describe()}")
@@ -183,11 +186,11 @@ def main() -> int:
                   state_file=DATA / "conductor_state.json")
     log(f"maestro: {C.report()}")
 
-    acts = Actions(bsky, brain, guard, mem, agency=A, social=S)
+    acts = Actions(bsky, brain, guard, mem, agency=A, social=S, growth=G)
     H = {"post": acts.do_post, "reply": acts.do_reply, "follow": acts.do_follow,
          "like": acts.do_like, "repost": acts.do_repost,
          "notifications": acts.do_engage_notifications, "harvest": acts.do_harvest,
-         "visit": acts.do_visit}
+         "visit": acts.do_visit, "seek": acts.do_seek, "measure": acts.do_measure}
 
     beacon = Beacon("worker", every=15).start()
 
@@ -197,6 +200,7 @@ def main() -> int:
         S.save()
         AD.save()
         C.save()
+        G.save()
 
     last_state = time.time()
 
@@ -234,6 +238,7 @@ def main() -> int:
         conductor=C,
         adaptive=AD,
         immune=IM,
+        growth=G,
         heartbeat=lambda: None,
     )
 
@@ -251,6 +256,7 @@ def main() -> int:
         S.save()
         AD.save()
         C.save()
+        G.save()
         commit_state("final")
         st = mem.stats(24)
         log(f"fim — deliberações={A.ticks} stats24h={json.dumps(st, ensure_ascii=False)}")
@@ -259,6 +265,7 @@ def main() -> int:
         log(f"maestro final: {C.report()}")
         log(f"parâmetros:\n{AD.report()}")
         log(f"sistema imune:\n{IM.report()}")
+        log(f"crescimento:\n{G.report()}")
     return 0
 
 
