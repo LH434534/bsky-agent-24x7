@@ -124,6 +124,9 @@ def main() -> int:
     bsky.login()
     log(f"logado como @{bsky.handle} ({bsky.did})")
 
+    from core.adaptive import Adaptive
+    AD = Adaptive(DATA / "adaptive_state.json")
+
     guard = SpamGuard(limits=Limits(
         day_posts=int(os.environ.get("DAY_POSTS", 20)),
         day_replies=int(os.environ.get("DAY_REPLIES", 35)),
@@ -168,12 +171,10 @@ def main() -> int:
         (DATA / f).touch()
 
     from core.social import Social
-    from core.adaptive import Adaptive
     from core.immune import Immune
     from core.conductor import Conductor
 
     S = Social(DATA / "social_state.json")
-    AD = Adaptive(DATA / "adaptive_state.json")
     IM = Immune(DATA / "immune_state.json")
     log(f"social: {S.describe()}")
     log(f"parâmetros: {AD.describe()}")
