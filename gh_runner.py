@@ -131,7 +131,8 @@ def main() -> int:
         day_likes=int(os.environ.get("DAY_LIKES", 150)),
         day_reposts=int(os.environ.get("DAY_REPOSTS", 25))),
         tz_offset=int(os.environ.get("TZ_OFFSET", "-3")),
-        state_file=DATA / "spam_state.json")
+        state_file=DATA / "spam_state.json",
+        adaptive=AD)
     guard.load()
 
     brain = Brain()
@@ -162,11 +163,24 @@ def main() -> int:
     # garante que os arquivos de agência entrem no primeiro commit
     A.save()
     (DATA / "agent.log").touch()
-    (DATA / "social_state.json").touch()
+    for f in ("social_state.json", "adaptive_state.json",
+              "immune_state.json", "conductor_state.json"):
+        (DATA / f).touch()
 
     from core.social import Social
+    from core.adaptive import Adaptive
+    from core.immune import Immune
+    from core.conductor import Conductor
+
     S = Social(DATA / "social_state.json")
+    AD = Adaptive(DATA / "adaptive_state.json")
+    IM = Immune(DATA / "immune_state.json")
     log(f"social: {S.describe()}")
+    log(f"parâmetros: {AD.describe()}")
+
+    C = Conductor(agency=A, adaptive=AD, immune=IM, social=S,
+                  state_file=DATA / "conductor_state.json")
+    log(f"maestro: {C.report()}")
 
     acts = Actions(bsky, brain, guard, mem, agency=A, social=S)
     H = {"post": acts.do_post, "reply": acts.do_reply, "follow": acts.do_follow,
@@ -180,6 +194,8 @@ def main() -> int:
         guard.save()
         A.save()
         S.save()
+        AD.save()
+        C.save()
 
     last_state = time.time()
 
@@ -214,6 +230,9 @@ def main() -> int:
         notif_check=acts.has_pending_notifications,
         on_flush=flush_and_commit,
         social=S,
+        conductor=C,
+        adaptive=AD,
+        immune=IM,
         heartbeat=lambda: None,
     )
 
@@ -229,11 +248,16 @@ def main() -> int:
         guard.save()
         A.save()
         S.save()
+        AD.save()
+        C.save()
         commit_state("final")
         st = mem.stats(24)
         log(f"fim — deliberações={A.ticks} stats24h={json.dumps(st, ensure_ascii=False)}")
         log(f"agência final: {A.describe()}")
         log(f"social final: {S.describe()}")
+        log(f"maestro final: {C.report()}")
+        log(f"parâmetros:\n{AD.report()}")
+        log(f"sistema imune:\n{IM.report()}")
     return 0
 
 
