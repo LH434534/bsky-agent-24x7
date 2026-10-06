@@ -61,6 +61,7 @@ class Autonomous:
         self.G = growth
         self.running = True
         self.stats: Dict[str, int] = {}
+        self._last_flush = time.time()
 
     def stop(self, *a) -> None:
         log("parando (sinal recebido)")
@@ -237,7 +238,12 @@ class Autonomous:
                 except Exception:
                     pass
 
-            if steps % 8 == 0:
+            # Salvar por TEMPO, não por contagem de passos: quando ele está fora
+            # do app cada passo dorme até 30 min, então 8 passos podiam levar
+            # 4 horas — o estado (e as estatísticas de imagem) ficavam sem
+            # commitar esse tempo todo.
+            if steps % 8 == 0 or time.time() - self._last_flush > 480:
+                self._last_flush = time.time()
                 try:
                     self.flush()
                 except Exception:
@@ -249,6 +255,11 @@ class Autonomous:
                 log(f"  [{self.A.describe()}]")
                 if self.C is not None:
                     log(f"  [{self.C.report()}]")
+                if self.G is not None and steps % 32 == 0:
+                    try:
+                        log(f"  [{self.G.describe()}]")
+                    except Exception:
+                        pass
 
             # dorme em pedaços para responder a sinais
             end = time.time() + min(wait, 1800)
