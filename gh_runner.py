@@ -179,6 +179,7 @@ def main() -> int:
 
     IMG = Images(DATA / "images_state.json",
                  enabled=os.environ.get("IMAGES", "1") not in ("0", "", "false"))
+    IMG.save()
     log(f"imagens: {'ligadas' if IMG.available() else 'desligadas'} · {IMG.describe()}")
     G = Growth(DATA / "growth_state.json")
     log(f"crescimento: {G.describe()}")
