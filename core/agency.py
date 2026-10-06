@@ -271,6 +271,8 @@ class Agency:
     _seed_topics: List[str] = field(default_factory=list)
     _wants_visit: str = ""          # nome de alguém que ele quer ir ver
     _wants_visit_at: float = 0.0
+    _wants_measure: bool = False    # quer ver o alcance dos próprios posts
+    _wants_seek: bool = False       # quer achar onde comentar rende mais
 
     # ───────────────────────────────────────────────────────── persistência
     def save(self) -> None:
@@ -427,7 +429,15 @@ class Agency:
             if r < 0.62:
                 return "repost", "vale repassar"
 
-        # 6) lembrar de alguém e ir ver o que ela postou — iniciativa, não reação
+        # 6) medir o próprio alcance — crescer exige saber o que funcionou
+        if self._wants_measure and i.curiosidade > 0.30 and random.random() < 0.5:
+            return "measure", "quero ver o que meus posts renderam"
+
+        # 7) procurar onde comentar rende visibilidade
+        if self._wants_seek and i.vontade_falar > 0.35 and random.random() < 0.4:
+            return "seek", "quero comentar onde mais gente vai ver"
+
+        # 8) lembrar de alguém e ir ver o que ela postou — iniciativa, não reação
         if self._wants_visit and i.curiosidade > 0.40 and random.random() < 0.35:
             return "visit", f"faz tempo que não vejo o que {self._wants_visit} postou"
 
@@ -509,6 +519,13 @@ class Agency:
 
     def visit_expired(self) -> bool:
         return time.time() - self._wants_visit_at > 6 * 3600
+
+    def growth_intentions(self, hours_since_measure: float) -> None:
+        """Crescimento também é intenção: medir de tempos em tempos, e procurar
+        oportunidade quando faz tempo que só posta no vazio."""
+        self._wants_measure = hours_since_measure > 3.0
+        self._wants_seek = (self.inner.vontade_falar > 0.35
+                            and self.inner.curiosidade > 0.40)
 
     # ────────────────────────────────────────────────────────── assuntos
     def next_topic(self, seed: Optional[List[str]] = None) -> str:
