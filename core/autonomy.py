@@ -43,7 +43,10 @@ class Autonomous:
                  notif_check: Optional[Callable[[], bool]] = None,
                  on_flush: Optional[Callable[[], None]] = None,
                  heartbeat: Optional[Callable[[], None]] = None,
-                 social: Optional[object] = None):
+                 social: Optional[object] = None,
+                 conductor: Optional[object] = None,
+                 adaptive: Optional[object] = None,
+                 immune: Optional[object] = None):
         self.A = agency
         self.H = handlers
         self.feed = feed_provider or (lambda n: [])
@@ -51,6 +54,9 @@ class Autonomous:
         self.flush = on_flush or (lambda: None)
         self.hb = heartbeat or (lambda: None)
         self.S = social
+        self.C = conductor
+        self.AD = adaptive
+        self.IM = immune
         self.running = True
         self.stats: Dict[str, int] = {}
 
@@ -111,10 +117,14 @@ class Autonomous:
         except Exception as e:
             did = False
             self.A.note_failure()
+            if self.C is not None:
+                self.C.note_error(str(e))
             log(f"      ✗ {kind} crashed: {str(e)[:120]}")
             log(traceback.format_exc()[-400:])
             return False
         self.stats[kind] = self.stats.get(kind, 0) + (1 if did else 0)
+        if self.C is not None:
+            self.C.note(kind, did, time.time() - t0)
         if did:
             self.A.note_action(kind)
             log(f"      ✓ {kind} em {time.time()-t0:.1f}s")
@@ -163,13 +173,21 @@ class Autonomous:
 
         # 4) delibera
         kind, reason = self.A.decide(have_notifs=have_notifs, candidates=items)
-        self.act(kind, reason)
+        # o maestro segura a rédea: pode vetar por postura ou silêncio
+        if self.C is not None and kind != "nada" and not self.C.should_act():
+            log(f"      ⊘ maestro vetou {kind} ({self.C.posture})")
+            self.A.react("scrollou", 0.4)
+        else:
+            self.act(kind, reason)
 
         # 4) às vezes faz uma segunda coisa na mesma sessão (gente faz isso)
         if random.random() < 0.45 and self.A.inner.energia > 0.25:
             kind2, reason2 = self.A.decide(have_notifs=False, candidates=items)
             if kind2 != "nada":
-                self.act(kind2, reason2)
+                if self.C is not None and not self.C.should_act():
+                    log(f"      ⊘ maestro vetou {kind2}")
+                else:
+                    self.act(kind2, reason2)
 
         # 5) continua no app?
         if not self.A.still_in_session():
@@ -199,6 +217,13 @@ class Autonomous:
             except Exception:
                 pass
 
+            if self.C is not None:
+                try:
+                    for f in self.C.cycle():
+                        log(f"  ⋯ {f}")
+                except Exception:
+                    pass
+
             if steps % 8 == 0:
                 try:
                     self.flush()
@@ -209,6 +234,8 @@ class Autonomous:
                 except Exception:
                     pass
                 log(f"  [{self.A.describe()}]")
+                if self.C is not None:
+                    log(f"  [{self.C.report()}]")
 
             # dorme em pedaços para responder a sinais
             end = time.time() + min(wait, 1800)
