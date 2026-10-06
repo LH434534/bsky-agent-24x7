@@ -58,6 +58,7 @@ class SpamGuard:
     limits: Limits = field(default_factory=Limits)
     tz_offset: int = 0                      # your UTC offset in hours (Brazil = -3)
     state_file: Path = DATA / "spam_state.json"
+    adaptive: object | None = None          # parâmetros vivos (core.adaptive)
 
     # runtime
     _last: Dict[str, float] = field(default_factory=dict)
@@ -118,12 +119,23 @@ class SpamGuard:
         if self._cooldown > now:
             return False, f"global cooldown {int(self._cooldown - now)}s"
 
+        # caps e intervalos podem vir dos parâmetros vivos, quando existem
         cap = getattr(L, f"day_{action}s", None)
+        if self.adaptive is not None:
+            try:
+                cap = int(self.adaptive.get(f"day_{action}s"))
+            except Exception:
+                pass
         if cap is not None and self.used_today(action) >= cap:
             return False, f"daily cap {action}={cap} reached"
 
         gap = getattr(L, f"gap_{action}s", 0) if hasattr(L, f"gap_{action}s") \
             else getattr(L, f"gap_{action}", 0)
+        if self.adaptive is not None:
+            try:
+                gap = float(self.adaptive.get(f"gap_{action}s"))
+            except Exception:
+                pass
         last = self._last.get(action, 0)
         jitter = random.uniform(0.75, 1.45)
         need = gap * jitter
