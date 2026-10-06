@@ -105,6 +105,7 @@ def handlers(acts: Actions) -> dict:
         "visit": acts.do_visit,
         "seek": acts.do_seek,
         "measure": acts.do_measure,
+        "image": acts.do_image,
     }
 
 
@@ -126,6 +127,9 @@ def cmd_run(a) -> None:
     A.seed_topics(DEFAULT_QUERIES)
     acts.A = A
     from core.growth import Growth
+    from core.images import Images
+    IMG = Images(DATA / "images_state.json")
+    acts.I = IMG
     S = Social(DATA / "social_state.json")
     G = Growth(DATA / "growth_state.json")
     acts.S = S
