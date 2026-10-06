@@ -32,7 +32,8 @@ SELF_PROMO_HINTS = ["giveaway", "airdrop", "promo", "discount code", "casino", "
 class Actions:
     def __init__(self, bsky: Bsky, brain: Brain, guard: SpamGuard, mem: Memory,
                  queries: Optional[List[str]] = None, persona_topics: Optional[List[str]] = None,
-                 agency: Optional[Any] = None, social: Optional[Any] = None):
+                 agency: Optional[Any] = None, social: Optional[Any] = None,
+                 growth: Optional[Any] = None):
         self.b = bsky
         self.brain = brain
         self.g = guard
@@ -41,6 +42,7 @@ class Actions:
         self.persona_topics = persona_topics or []
         self.A = agency
         self.S = social
+        self.G = growth
 
     # ─────────────────────────────────────────────────────────────── helpers
     def _topic(self) -> str:
@@ -63,6 +65,26 @@ class Actions:
     def _curiosity(self) -> float:
         """Curiosidade atual — abre espaço pra gente nova no grafo social."""
         return getattr(self.A.inner, "curiosidade", 0.6) if self.A is not None else 0.6
+
+    def _growth_hint(self) -> str:
+        """O que funcionou antes, dito ao modelo em linguagem natural.
+
+        Não é 'use pergunta' seco — é o modelo receber o dado e decidir como
+        escrever. Forçar estrutura deixa o texto duro e repetitivo.
+        """
+        if self.G is None or not self.G.outcomes:
+            return ""
+        hooks = self.G.best_hooks()
+        if not hooks:
+            return ""
+        melhor = hooks[0]
+        formas = self.G.best_shapes()
+        bits = [f"Estruturas que mais renderam engajamento nos seus posts: {melhor[0]}"]
+        if len(hooks) > 1:
+            bits.append(f"depois {hooks[1][0]}")
+        if formas:
+            bits.append(f"tamanho {formas[0][0]}")
+        return ". ".join(bits) + ". Não force, só incline para esse lado."
 
     def _act(self, kind: str) -> bool:
         ok, why = self.g.ok(kind)
@@ -119,7 +141,9 @@ class Actions:
         ])
         if random.random() < 0.12:
             return self.do_thread(topic)
-        text = self.brain.write_post(topic, style=style, mood=self._mood())
+        gtext = self._growth_hint()
+        text = self.brain.write_post(topic, style=style, mood=self._mood(),
+                                     extra=gtext)
         # já disse algo parecido? gente real não se repete
         if self.A is not None and self.A.mind.has_said_similar(text):
             text = self.brain.write_post(self._topic(), style=style, mood=self._mood())
@@ -500,6 +524,75 @@ class Actions:
                 log.info("VISITOU @%s e curtiu: %s", p.handle, txt[:60])
                 return True
         return False
+
+    def do_seek(self) -> bool:
+        """Procura ONDE comentar rende mais visibilidade — não comenta em qualquer
+        post do feed. Conta com audiência + post fresco + poucas respostas.
+
+        Isso é a diferença entre "responder aleatório" (automático) e "escolher
+        onde sua resposta vai ser vista" (engenharia).
+        """
+        if self.G is None or not self._act("reply"):
+            return False
+        brutos: List[dict] = []
+        for q in random.sample(self.queries, min(4, len(self.queries))):
+            try:
+                brutos += self.b.search_posts(q, limit=25, sort="latest")
+            except Exception as e:
+                log.debug("seek search failed: %s", e)
+        try:
+            brutos += [f["post"] for f in self.b.timeline(limit=30)]
+        except Exception:
+            pass
+
+        oportunidades = self.G.rank_opportunities(brutos, 6)
+        if not oportunidades:
+            return False
+        for p in oportunidades:
+            rec = p.get("record") or {}
+            author = p.get("author") or {}
+            txt = (rec.get("text") or "").strip()
+            did, handle = author.get("did", ""), author.get("handle", "")
+            if not txt or not did or did == self.b.did:
+                continue
+            if self.m.seen(p.get("uri", "")) or not self.g.target_ok(did):
+                continue
+            if not self.brain.judge_reply(txt):
+                self.m.mark_seen(p["uri"])
+                continue
+            ctx = self.S.context_for(did) if self.S is not None else ""
+            reply = self._safe(self.brain.write_reply(txt, handle, context=ctx))
+            if not reply:
+                self.m.mark_seen(p["uri"])
+                continue
+            try:
+                ref = self.b.post(reply, reply_to=PostRef(p["uri"], p["cid"]))
+            except Exception as e:
+                self.m.log_action("reply", text=reply, target_did=did, ok=False, err=str(e))
+                self.G.note_tried(did)
+                continue
+            self.g.record("reply")
+            self.g.remember_text(reply)
+            self.g.touch(did)
+            if self.S is not None:
+                self.S.note_reply(did, handle, " ".join(txt.split()[:3]))
+            self.G.note_tried(did)
+            self.m.mark_seen(p["uri"])
+            self.m.log_action("reply", text=reply, target_did=did,
+                              target_handle=handle, uri=ref.uri)
+            seg = author.get("followersCount", 0) or 0
+            log.info("OPORTUNIDADE @%s (%d seguidores): %s", handle, seg, reply[:60])
+            return True
+        return False
+
+    def do_measure(self) -> bool:
+        """Mede o alcance real dos próprios posts. Sem isso não aprende nada."""
+        if self.G is None:
+            return False
+        n = self.G.measure(self.b, limit=25)
+        if n:
+            log.info("MEDIU %d posts — %s", n, self.G.describe())
+        return n > 0
 
     def do_harvest(self) -> None:
         """Silent pass: refresh the offline corpus from live language. No writes."""
