@@ -370,12 +370,14 @@ class Brain:
         return t[:300]
 
     # ------------------------------------------------------------- task sugar
-    def write_post(self, topic: str, style: str = "qualquer", mood: str = "") -> str:
+    def write_post(self, topic: str, style: str = "qualquer", mood: str = "",
+                   extra: str = "") -> str:
         """Escreve um post na voz do personagem, no humor de agora."""
         return self.gen(
             f"Escreva um post agora. Semente de assunto (use ou ignore, é só um empurrão): {topic}\n"
             f"Estilo: {style}. Lembrete: sem abreviações, sem hashtag, uma ideia só."
-            + (f"\nEstado de espírito agora: {mood}" if mood else ""),
+            + (f"\nEstado de espírito agora: {mood}" if mood else "")
+            + (f"\n{extra}" if extra else ""),
             max_tokens=90, temperature=1.05)
 
     def write_reply(self, post_text: str, author: str = "", context: str = "") -> str:
