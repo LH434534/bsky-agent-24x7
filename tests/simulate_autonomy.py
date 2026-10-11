@@ -16,13 +16,14 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, "/data/workspace/bsky_agent")
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 from core.adaptive import Adaptive      # noqa: E402
 from core.immune import Immune, Remedy  # noqa: E402
 from core.conductor import Conductor, Vitals   # noqa: E402
 
 random.seed(int(__import__("os").environ.get("SEED", "5")))
-D = Path("/data/workspace/bsky_agent/data")
+D = ROOT / "data"
 for f in ("adaptive_state.json", "immune_state.json", "conductor_state.json"):
     if (D / f).exists():
         (D / f).unlink()

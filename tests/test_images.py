@@ -14,13 +14,14 @@ import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
-sys.path.insert(0, "/data/workspace/bsky_agent")
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from core.atproto import Bsky, PostRef        # noqa: E402
 from core.images import (Images, image_prompt, alt_text,      # noqa: E402
                          looks_like_image, compress, gen_offline)
 
-DATA = Path("/data/workspace/bsky_agent/data")
+DATA = ROOT / "data"
 ok = True
 
 

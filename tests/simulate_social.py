@@ -9,14 +9,15 @@ from __future__ import annotations
 import random
 import sys
 from collections import Counter
+import pathlib
 
-sys.path.insert(0, "/data/workspace/bsky_agent")
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from core.social import Social, Person    # noqa: E402
-import pathlib                            # noqa: E402
 
 random.seed(int(__import__("os").environ.get("SEED", "7")))
-F = pathlib.Path("/data/workspace/bsky_agent/data/social_test.json")
+F = ROOT / "data" / "social_test.json"
 if F.exists():
     F.unlink()
 

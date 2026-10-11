@@ -17,11 +17,12 @@ import time
 from collections import Counter
 from pathlib import Path
 
-sys.path.insert(0, "/data/workspace/bsky_agent")
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 from core.growth import Growth, Outcome, classify_hook, shape   # noqa: E402
 
 random.seed(int(__import__("os").environ.get("SEED", "11")))
-F = Path("/data/workspace/bsky_agent/data/growth_test.json")
+F = ROOT / "data" / "growth_test.json"
 if F.exists():
     F.unlink()
 G = Growth(F)

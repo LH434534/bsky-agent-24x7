@@ -14,6 +14,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+ROOT = Path(__file__).resolve().parents[1]
 
 from core.images import (Images, image_prompt, looks_like_image,   # noqa: E402
                          compress, PROVIDERS)
@@ -25,7 +26,7 @@ def log(m: str) -> None:
     try:
         # vai no agent.log, que é commitado no branch state — assim dá pra ler
         # o resultado do provedor real sem precisar baixar log do Actions
-        with open("/data/workspace/bsky_agent/data/agent.log", "a") as f:
+        with open(ROOT / "data" / "agent.log", "a") as f:
             f.write(line + "\n")
     except Exception:
         pass
@@ -33,7 +34,7 @@ def log(m: str) -> None:
 
 def main() -> int:
     log("começando teste de fumaça (rede livre do runner)")
-    I = Images(Path("/data/workspace/bsky_agent/data/images_state.json"))
+    I = Images(ROOT / "data" / "images_state.json")
     I.enabled = True
     I.min_gap = 0
 
