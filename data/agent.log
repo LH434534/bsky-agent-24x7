@@ -1,0 +1,743 @@
+00:13:54 AUTO │ motor autônomo iniciado — noite · energia 0.72 · humor +0.10 · postar 0.35 · falar 0.30 · fadiga 0.00 · interesses: futebol, jogos, série
+00:13:54 AUTO │   ● abriu o app (6 min, noite)
+00:13:54 AUTO │       → like (achei legal, vou curtir)
+00:15:13 AUTO │   ● já está no app
+00:15:14 AUTO │       → harvest (quero ver o que tá rolando)
+00:15:14 AUTO │       → harvest (quero ver o que tá rolando)
+00:18:15 AUTO │   ● já está no app
+00:18:16 AUTO │       → like (achei legal, vou curtir)
+00:18:16 AUTO │       → post (tô com vontade de postar)
+00:18:24 AUTO │       ✓ post em 8.4s
+00:24:31 AUTO │   ● já está no app
+00:24:31 AUTO │       → like (achei legal, vou curtir)
+00:25:59 AUTO │   ○ fora do app: fora do app até 01:02
+00:38:27 AUTO │   ○ fora do app: fora do app até 01:02
+00:43:34 AUTO │ motor autônomo iniciado — noite · energia 0.75 · humor +0.52 · postar 0.13 · falar 0.29 · fadiga 0.26 · interesses: now playing on, flydubais perilous plunge, futebol
+00:43:34 AUTO │   ○ fora do app: fora do app até 01:02
+00:52:13 AUTO │   ○ fora do app: fora do app até 01:02
+01:04:15 AUTO │   ● abriu o app (7 min, noite)
+01:04:16 AUTO │       → harvest (quero ver o que tá rolando)
+01:05:46 AUTO │   ● já está no app
+01:05:46 AUTO │       → harvest (quero ver o que tá rolando)
+01:05:46 AUTO │       → harvest (quero ver o que tá rolando)
+01:07:51 AUTO │   ● já está no app
+01:07:52 AUTO │       → post (tô com vontade de postar)
+01:08:54 AUTO │       ✓ post em 62.1s
+01:12:18 AUTO │   ● já está no app
+01:12:18 AUTO │       · só olhando o feed
+01:14:37 AUTO │   ○ fora do app: fora do app até 02:58
+01:24:24 AUTO │ motor autônomo iniciado — noite · energia 0.75 · humor +0.71 · postar 0.03 · falar 0.29 · fadiga 0.35 · interesses: now playing on, flydubais perilous plunge, futebol
+01:24:24 AUTO │   ○ fora do app: fora do app até 02:24
+01:33:15 AUTO │   ○ fora do app: fora do app até 02:24
+01:44:19 AUTO │   ○ fora do app: fora do app até 02:24
+01:58:33 AUTO │   ○ fora do app: fora do app até 02:24
+02:04:44 AUTO │   ○ fora do app: fora do app até 02:24
+02:10:07 AUTO │   ○ fora do app: fora do app até 02:24
+02:22:53 AUTO │   ○ fora do app: fora do app até 02:24
+02:30:59 AUTO │   ● abriu o app (13 min, noite)
+02:31:00 AUTO │       → repost (vale repassar)
+02:31:02 AUTO │       → harvest (quero ver o que tá rolando)
+02:31:02 AUTO │   [noite · energia 0.82 · humor +0.47 · postar 0.41 · falar 0.31 · fadiga 0.08 · interesses: now playing on, digger the last, flydubais perilous plunge]
+02:33:26 AUTO │   ● já está no app
+02:33:27 AUTO │       → like (achei legal, vou curtir)
+02:38:25 AUTO │   ● já está no app
+02:38:25 AUTO │       → like (achei legal, vou curtir)
+02:40:39 AUTO │   ● já está no app
+02:40:39 AUTO │       → harvest (quero ver o que tá rolando)
+02:40:39 AUTO │       → post (tô com vontade de postar)
+02:47:45 AUTO │   ● já está no app
+02:47:46 AUTO │       → post (tenho mais a dizer que cabe num post)
+02:47:47 AUTO │       → post (tô com vontade de postar)
+02:48:49 AUTO │   ○ fora do app: fora do app até 05:17
+02:57:20 AUTO │   ○ fora do app: fora do app até 05:17
+03:06:00 AUTO │   ○ fora do app: fora do app até 05:17
+03:20:51 AUTO │   ○ fora do app: fora do app até 05:17
+03:20:52 AUTO │   [madrugada · energia 0.93 · humor +0.53 · postar 0.76 · falar 0.31 · fadiga 0.00 · interesses: now playing on, digger the last, flydubais perilous plunge]
+03:27:40 AUTO │   ○ fora do app: fora do app até 05:17
+03:36:41 AUTO │   ○ fora do app: fora do app até 05:17
+03:44:00 AUTO │   ○ fora do app: fora do app até 05:17
+03:53:48 AUTO │   ○ fora do app: fora do app até 05:17
+03:58:07 AUTO │   ○ fora do app: fora do app até 05:17
+04:10:16 AUTO │   ○ fora do app: fora do app até 05:17
+04:16:22 AUTO │   ○ fora do app: fora do app até 05:17
+04:21:07 AUTO │   ○ fora do app: fora do app até 05:17
+04:21:08 AUTO │   [madrugada · energia 0.90 · humor +0.35 · postar 0.56 · falar 0.31 · fadiga 0.00 · interesses: now playing on, digger the last, flydubais perilous plunge]
+04:33:19 AUTO │   ○ fora do app: fora do app até 05:17
+04:39:31 AUTO │   ○ fora do app: fora do app até 05:17
+04:49:35 AUTO │   ○ fora do app: fora do app até 05:17
+04:56:57 AUTO │   ○ fora do app: fora do app até 05:17
+05:04:28 AUTO │   ○ fora do app: fora do app até 05:17
+05:18:16 AUTO │   ● abriu o app (5 min, madrugada)
+05:18:16 AUTO │       · só olhando o feed
+05:21:46 AUTO │   ● já está no app
+05:21:47 AUTO │       → harvest (quero ver o que tá rolando)
+05:22:37 AUTO │   ● já está no app
+05:22:37 AUTO │       → like (achei legal, vou curtir)
+05:22:37 AUTO │       → post (tô com vontade de postar)
+05:22:37 AUTO │   [madrugada · energia 0.89 · humor +0.46 · postar 0.75 · falar 0.31 · fadiga 0.37 · interesses: now playing on, digger the last, flydubais perilous plunge]
+05:24:26 AUTO │   ● já está no app
+05:24:27 AUTO │       → post (tô com vontade de postar)
+05:24:27 AUTO │       → post (tô com vontade de postar)
+05:27:06 AUTO │   ○ fora do app: fora do app até 05:54
+05:33:32 AUTO │   ○ fora do app: fora do app até 05:54
+05:39:47 AUTO │   ○ fora do app: fora do app até 05:54
+05:51:54 AUTO │   ○ fora do app: fora do app até 05:54
+06:06:25 AUTO │   ● abriu o app (5 min, madrugada)
+06:06:26 AUTO │       → post (tenho mais a dizer que cabe num post)
+06:11:03 AUTO │   ● já está no app
+06:11:04 AUTO │       · só olhando o feed
+06:17:23 AUTO │   ● já está no app
+06:17:23 AUTO │       → post (tenho mais a dizer que cabe num post)
+06:17:23 AUTO │       → post (tô com vontade de postar)
+06:17:23 AUTO │   [madrugada · energia 0.97 · humor +0.68 · postar 0.94 · falar 0.31 · fadiga 0.29 · interesses: now playing on, a woman suspected, digger the last]
+06:20:17 AUTO │   ○ fora do app: fora do app até 07:08
+06:34:04 AUTO │   ○ fora do app: fora do app até 07:08
+06:38:28 AUTO │   ○ fora do app: fora do app até 07:08
+06:45:55 AUTO │   ○ fora do app: fora do app até 07:08
+06:53:08 AUTO │   ○ fora do app: fora do app até 07:08
+07:04:58 AUTO │ deadline atingido — encerrando
+07:04:59 AUTO │ fim — 45 deliberações · {"repost": 0, "harvest": 0, "like": 0, "post": 0}
+07:08:24 AUTO │ motor autônomo iniciado — madrugada · energia 0.96 · humor +0.51 · postar 0.73 · falar 0.31 · fadiga 0.00 · interesses: now playing on, a woman suspected, digger the last
+07:08:24 AUTO │   ● abriu o app (6 min, madrugada)
+07:08:25 AUTO │       → like (achei legal, vou curtir)
+07:08:35 AUTO │       ✓ like em 10.3s
+07:13:02 AUTO │   ● já está no app
+07:13:03 AUTO │       → harvest (quero ver o que tá rolando)
+07:13:03 AUTO │       → post (tô com vontade de postar)
+07:19:18 AUTO │   ● já está no app
+07:19:19 AUTO │       → post (tenho mais a dizer que cabe num post)
+07:22:00 AUTO │   ○ fora do app: fora do app até 07:59
+07:36:34 AUTO │   ○ fora do app: fora do app até 07:59
+07:43:49 AUTO │   ○ fora do app: fora do app até 07:59
+07:53:59 AUTO │   ○ fora do app: fora do app até 07:59
+08:01:35 AUTO │   ○ fora do app: sem vontade (urge=0.53)
+08:01:36 AUTO │   [manhã · energia 0.97 · humor +0.50 · postar 0.72 · falar 0.31 · fadiga 0.00 · interesses: now playing on, a woman suspected, digger the last]
+08:08:40 AUTO │   ● abriu o app (7 min, manhã)
+08:08:41 AUTO │       → post (tô com vontade de postar)
+08:11:39 AUTO │   ● já está no app
+08:11:40 AUTO │       → post (tô com vontade de postar)
+08:11:40 AUTO │       → post (tô com vontade de postar)
+08:14:15 AUTO │   ● já está no app
+08:14:16 AUTO │       → post (tô com vontade de postar)
+08:14:17 AUTO │       → post (tô com vontade de postar)
+08:16:43 AUTO │   ● já está no app
+08:16:43 AUTO │       → post (tô com vontade de postar)
+08:18:15 AUTO │   ○ fora do app: fora do app até 08:48
+08:23:52 AUTO │   ○ fora do app: fora do app até 08:48
+08:35:16 AUTO │   ○ fora do app: fora do app até 08:48
+08:41:12 AUTO │   ○ fora do app: fora do app até 08:48
+08:41:13 AUTO │   [manhã · energia 0.93 · humor +0.60 · postar 0.81 · falar 0.30 · fadiga 0.04 · interesses: now playing on, a woman suspected, bolsonaro surged to]
+08:54:51 AUTO │   ● abriu o app (25 min, manhã)
+08:54:52 AUTO │       → post (tô com vontade de postar)
+08:56:20 AUTO │   ● já está no app
+08:56:20 AUTO │       → post (tô com vontade de postar)
+08:56:20 AUTO │       → post (tô com vontade de postar)
+08:57:59 AUTO │   ● já está no app
+08:58:00 AUTO │       → post (tô com vontade de postar)
+08:58:00 AUTO │       → post (tô com vontade de postar)
+09:00:47 AUTO │   ● já está no app
+09:00:47 AUTO │       → post (tô com vontade de postar)
+09:04:08 AUTO │   ● já está no app
+09:04:08 AUTO │       → post (tô com vontade de postar)
+09:05:52 AUTO │   ● já está no app
+09:05:52 AUTO │       → post (tô com vontade de postar)
+09:13:10 AUTO │   ● já está no app
+09:13:10 AUTO │       → post (tô com vontade de postar)
+09:13:11 AUTO │       → post (tô com vontade de postar)
+09:15:14 AUTO │   ● já está no app
+09:15:15 AUTO │       → post (tenho mais a dizer que cabe num post)
+09:15:15 AUTO │   [manhã · energia 0.83 · humor +1.00 · postar 1.00 · falar 0.30 · fadiga 0.84 · interesses: now playing on, a woman suspected, bolsonaro surged to]
+09:22:46 AUTO │   ● já está no app
+09:22:47 AUTO │       → post (tô com vontade de postar)
+09:22:47 AUTO │       → post (tô com vontade de postar)
+09:25:13 AUTO │   ○ fora do app: fora do app até 10:54
+09:32:30 AUTO │   ○ fora do app: fora do app até 10:54
+09:46:26 AUTO │   ○ fora do app: fora do app até 10:54
+09:55:34 AUTO │   ○ fora do app: fora do app até 10:54
+10:02:35 AUTO │   ○ fora do app: fora do app até 10:54
+10:13:29 AUTO │   ○ fora do app: fora do app até 10:54
+10:27:23 AUTO │   ○ fora do app: fora do app até 10:54
+10:27:24 AUTO │   [manhã · energia 0.96 · humor +0.57 · postar 0.70 · falar 0.31 · fadiga 0.00 · interesses: now playing on, a woman suspected, bolsonaro surged to]
+10:38:16 AUTO │   ○ fora do app: fora do app até 10:54
+10:48:59 AUTO │   ○ fora do app: fora do app até 10:54
+11:01:45 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+11:08:51 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+11:15:42 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+11:30:32 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+11:43:19 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+11:48:58 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+11:49:00 AUTO │   [manhã · energia 0.97 · humor +0.36 · postar 0.53 · falar 0.32 · fadiga 0.00 · interesses: now playing on, a woman suspected, bolsonaro surged to]
+11:54:14 AUTO │   ○ fora do app: sem vontade (urge=0.51)
+12:01:34 AUTO │   ● abriu o app (25 min, manhã)
+12:01:35 AUTO │       → like (achei legal, vou curtir)
+12:06:53 AUTO │   ● já está no app
+12:06:54 AUTO │       → like (achei legal, vou curtir)
+12:06:54 AUTO │       → post (tô com vontade de postar)
+12:08:10 AUTO │       ✓ post em 75.9s
+12:09:14 AUTO │   ● já está no app
+12:09:14 AUTO │       → harvest (quero ver o que tá rolando)
+12:11:17 AUTO │   ● já está no app
+12:11:18 AUTO │       → harvest (quero ver o que tá rolando)
+12:11:18 AUTO │       → harvest (quero ver o que tá rolando)
+12:17:53 AUTO │   ● já está no app
+12:17:54 AUTO │       → like (achei legal, vou curtir)
+12:24:48 AUTO │   ● já está no app
+12:24:49 AUTO │       → repost (vale repassar)
+12:24:49 AUTO │       → post (tô com vontade de postar)
+12:32:00 AUTO │   ● já está no app
+12:32:00 AUTO │       → post (tenho mais a dizer que cabe num post)
+12:32:02 AUTO │   [manhã · energia 0.81 · humor +0.90 · postar 0.71 · falar 0.31 · fadiga 0.57 · interesses: now playing on, france and germany, a woman suspected]
+12:33:09 AUTO │   ○ fora do app: fora do app até 12:52
+12:40:03 AUTO │ deadline atingido — encerrando
+12:40:03 AUTO │ fim — 49 deliberações · {"like": 1, "harvest": 0, "post": 1, "repost": 0}
+12:43:29 AUTO │ motor autônomo iniciado — manhã · energia 0.84 · humor +0.82 · postar 0.68 · falar 0.31 · fadiga 0.48 · interesses: now playing on, france and germany, a woman suspected
+12:43:29 AUTO │   ○ fora do app: fora do app até 12:52
+12:56:07 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+13:03:06 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+13:08:46 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+13:16:54 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+13:28:46 AUTO │   ● abriu o app (19 min, manhã)
+13:28:46 AUTO │       → post (tô com vontade de postar)
+13:30:21 AUTO │       ✓ post em 95.1s
+13:30:21 AUTO │       → reply (vi uma pergunta e quero responder)
+13:35:55 AUTO │   ● já está no app
+13:36:45 AUTO │       · só olhando o feed
+13:36:45 AUTO │       → harvest (quero ver o que tá rolando)
+13:40:15 AUTO │   ● já está no app
+13:40:15 AUTO │       → reply (vi uma pergunta e quero responder)
+13:40:15 AUTO │       → reply (vi uma pergunta e quero responder)
+13:40:15 AUTO │   [manhã · energia 0.66 · humor +0.62 · postar 0.43 · falar 0.61 · fadiga 0.53 · interesses: now playing on, france and germany, meet the worlds]
+13:45:49 AUTO │   ● já está no app
+13:46:39 AUTO │       → harvest (quero ver o que tá rolando)
+13:51:26 AUTO │   ● já está no app
+13:51:27 AUTO │       → post (tô com vontade de postar)
+13:51:27 AUTO │       → post (tô com vontade de postar)
+13:53:07 AUTO │   ○ fora do app: fora do app até 14:11
+14:03:48 AUTO │   ○ fora do app: fora do app até 14:11
+14:08:05 AUTO │   ○ fora do app: fora do app até 14:11
+14:21:57 AUTO │   ● abriu o app (10 min, manhã)
+14:22:48 AUTO │       → reply (vi uma pergunta e quero responder)
+14:24:46 AUTO │   ● já está no app
+14:24:47 AUTO │       → reply (tô com vontade de falar com alguém)
+14:30:50 AUTO │   ● já está no app
+14:31:41 AUTO │       → reply (tô com vontade de falar com alguém)
+14:31:43 AUTO │       → reply (tô com vontade de falar com alguém)
+14:32:05 AUTO │   [manhã · energia 0.84 · humor +0.64 · postar 0.94 · falar 0.76 · fadiga 0.21 · interesses: meet the worlds, now playing on, maurillo dj is]
+14:34:21 AUTO │   ○ fora do app: fora do app até 15:26
+14:40:38 AUTO │   ○ fora do app: fora do app até 15:26
+14:48:35 AUTO │   ○ fora do app: fora do app até 15:26
+15:01:32 AUTO │   ○ fora do app: fora do app até 15:26
+15:14:19 AUTO │   ○ fora do app: fora do app até 15:26
+15:19:16 AUTO │   ○ fora do app: fora do app até 15:26
+15:23:56 AUTO │   ○ fora do app: fora do app até 15:26
+15:37:01 AUTO │   ● abriu o app (19 min, tarde)
+15:37:51 AUTO │       → post (tô com vontade de postar)
+15:39:25 AUTO │       ✓ post em 94.1s
+15:39:25 AUTO │   [tarde · energia 0.77 · humor +0.55 · postar 0.00 · falar 0.64 · fadiga 0.18 · interesses: now playing on, meet the worlds, maurillo dj is]
+15:42:11 AUTO │   ● já está no app
+15:42:12 AUTO │       · só olhando o feed
+15:44:20 AUTO │   ● já está no app
+15:44:20 AUTO │       → like (achei legal, vou curtir)
+15:44:21 AUTO │       → like (achei legal, vou curtir)
+15:50:10 AUTO │   ● já está no app
+15:51:00 AUTO │       → harvest (quero ver o que tá rolando)
+15:52:09 AUTO │   ● já está no app
+15:52:09 AUTO │       → like (achei legal, vou curtir)
+15:59:21 AUTO │   ● já está no app
+15:59:21 AUTO │       → post (tô com vontade de postar)
+16:00:50 AUTO │   ○ fora do app: fora do app até 17:00
+16:12:12 AUTO │   ○ fora do app: fora do app até 17:00
+16:18:31 AUTO │   ○ fora do app: fora do app até 17:00
+16:18:33 AUTO │   [tarde · energia 0.87 · humor +0.65 · postar 0.51 · falar 0.47 · fadiga 0.18 · interesses: now playing on, alex ovechkin the, meet the worlds]
+16:24:37 AUTO │   ○ fora do app: fora do app até 17:00
+16:33:19 AUTO │   ○ fora do app: fora do app até 17:00
+16:42:36 AUTO │   ○ fora do app: fora do app até 17:00
+16:57:10 AUTO │   ○ fora do app: fora do app até 17:00
+17:10:16 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+17:19:11 AUTO │   ● abriu o app (6 min, tarde)
+17:20:02 AUTO │       → like (achei legal, vou curtir)
+17:22:43 AUTO │   ● já está no app
+17:22:43 AUTO │       → post (tô com vontade de postar)
+17:24:13 AUTO │       ✓ post em 89.4s
+17:25:27 AUTO │   ● já está no app
+17:25:27 AUTO │       → harvest (quero ver o que tá rolando)
+17:25:28 AUTO │   [tarde · energia 0.93 · humor +0.80 · postar 0.13 · falar 0.39 · fadiga 0.25 · interesses: now playing on, fraternities promise reform, alex ovechkin the]
+17:28:00 AUTO │   ○ fora do app: fora do app até 18:10
+17:36:20 AUTO │   ○ fora do app: fora do app até 18:10
+17:44:53 AUTO │   ○ fora do app: fora do app até 18:10
+17:59:51 AUTO │   ○ fora do app: fora do app até 18:10
+18:08:16 AUTO │   ○ fora do app: fora do app até 18:10
+18:21:51 AUTO │ deadline atingido — encerrando
+18:21:52 AUTO │ fim — 45 deliberações · {"post": 3, "reply": 0, "harvest": 0, "like": 0}
+19:13:38 AUTO │ motor autônomo iniciado — tarde · energia 0.97 · humor +0.55 · postar 0.22 · falar 0.37 · fadiga 0.00 · interesses: now playing on, fraternities promise reform, alex ovechkin the
+19:13:38 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+19:27:41 AUTO │   ● abriu o app (12 min, tarde)
+19:28:31 AUTO │       → harvest (quero ver o que tá rolando)
+19:32:41 AUTO │   ● já está no app
+19:32:42 AUTO │       · só olhando o feed
+19:32:42 AUTO │       → like (achei legal, vou curtir)
+19:34:36 AUTO │   ● já está no app
+19:34:36 AUTO │       → harvest (quero ver o que tá rolando)
+19:37:21 AUTO │   ● já está no app
+19:37:22 AUTO │       → repost (vale repassar)
+19:37:22 AUTO │       ✓ repost em 0.3s
+19:42:49 AUTO │   ● já está no app
+19:42:49 AUTO │       → follow (quero seguir gente nova)
+19:45:40 AUTO │   ○ fora do app: fora do app até 20:30
+19:59:41 AUTO │   ○ fora do app: fora do app até 20:30
+19:59:42 AUTO │   [tarde · energia 0.94 · humor +0.62 · postar 0.57 · falar 0.36 · fadiga 0.13 · interesses: now playing on, ai brings a, fraternities promise reform]
+20:09:08 AUTO │   ○ fora do app: fora do app até 20:30
+20:19:35 AUTO │   ○ fora do app: fora do app até 20:30
+20:30:37 AUTO │   ● abriu o app (19 min, tarde)
+20:30:37 AUTO │       → harvest (quero ver o que tá rolando)
+20:30:38 AUTO │       → repost (vale repassar)
+20:30:39 AUTO │       ✓ repost em 0.3s
+20:33:11 AUTO │   ● já está no app
+20:33:11 AUTO │       → post (tô com vontade de postar)
+20:34:39 AUTO │       ✓ post em 87.5s
+20:41:13 AUTO │   ● já está no app
+20:41:13 AUTO │       → like (achei legal, vou curtir)
+20:48:51 AUTO │   ● já está no app
+20:49:41 AUTO │       → like (achei legal, vou curtir)
+20:52:03 AUTO │   ○ fora do app: fora do app até 21:17
+21:05:28 AUTO │   ○ fora do app: fora do app até 21:17
+21:05:30 AUTO │   [noite · energia 0.88 · humor +0.68 · postar 0.27 · falar 0.36 · fadiga 0.09 · interesses: now playing on, if anyone can, ai brings a]
+21:18:01 AUTO │   ● abriu o app (6 min, noite)
+21:18:01 AUTO │       → harvest (quero ver o que tá rolando)
+21:18:03 AUTO │       → like (achei legal, vou curtir)
+21:19:55 AUTO │   ● já está no app
+21:19:55 AUTO │       → post (tô com vontade de postar)
+21:22:42 AUTO │   ● já está no app
+21:22:43 AUTO │       → harvest (quero ver o que tá rolando)
+21:26:33 AUTO │   ● já está no app
+21:26:33 AUTO │       · só olhando o feed
+21:26:33 AUTO │       → harvest (quero ver o que tá rolando)
+21:28:29 AUTO │   ○ fora do app: fora do app até 21:46
+21:41:40 AUTO │   ○ fora do app: fora do app até 21:46
+21:47:15 AUTO │   ● abriu o app (8 min, noite)
+21:48:05 AUTO │       → post (tô com vontade de postar)
+21:50:23 AUTO │       ✓ post em 137.5s
+21:52:28 AUTO │   ● já está no app
+21:52:28 AUTO │       · só olhando o feed
+21:52:28 AUTO │       → like (achei legal, vou curtir)
+21:52:29 AUTO │   [noite · energia 0.75 · humor +0.87 · postar 0.13 · falar 0.33 · fadiga 0.60 · interesses: now playing on, if anyone can, really interesting that]
+22:00:00 AUTO │   ● já está no app
+22:00:00 AUTO │       → harvest (quero ver o que tá rolando)
+22:00:00 AUTO │       → harvest (quero ver o que tá rolando)
+22:01:47 AUTO │   ○ fora do app: fora do app até 23:08
+22:10:10 AUTO │   ○ fora do app: fora do app até 23:08
+22:20:16 AUTO │   ○ fora do app: fora do app até 23:08
+22:26:00 AUTO │   ○ fora do app: fora do app até 23:08
+22:31:56 AUTO │   ○ fora do app: fora do app até 23:08
+22:42:35 AUTO │   ○ fora do app: fora do app até 23:08
+22:47:44 AUTO │   ○ fora do app: fora do app até 23:08
+22:47:45 AUTO │   [noite · energia 0.90 · humor +0.55 · postar 0.36 · falar 0.32 · fadiga 0.00 · interesses: now playing on, if anyone can, really interesting that]
+22:57:26 AUTO │   ○ fora do app: fora do app até 23:08
+23:01:38 AUTO │   ○ fora do app: fora do app até 23:08
+23:15:18 AUTO │   ● abriu o app (5 min, noite)
+23:15:18 AUTO │       → like (achei legal, vou curtir)
+23:15:20 AUTO │       → post (tô com vontade de postar)
+23:16:49 AUTO │       ✓ post em 89.5s
+23:19:29 AUTO │   ● já está no app
+23:19:29 AUTO │       → harvest (quero ver o que tá rolando)
+23:25:03 AUTO │   ● já está no app
+23:25:03 AUTO │       → reply (vi uma pergunta e quero responder)
+23:27:03 AUTO │   ○ fora do app: fora do app até 00:03
+23:31:24 AUTO │   ○ fora do app: fora do app até 00:03
+23:40:47 AUTO │   ○ fora do app: fora do app até 00:03
+23:40:49 AUTO │   [noite · energia 0.90 · humor +0.63 · postar 0.27 · falar 0.40 · fadiga 0.00 · interesses: now playing on, elon musk is, when ninepoint partners]
+23:49:38 AUTO │   ○ fora do app: fora do app até 00:03
+00:01:50 AUTO │   ○ fora do app: fora do app até 00:03
+00:11:41 AUTO │   ● abriu o app (6 min, noite)
+00:12:32 AUTO │       → harvest (quero ver o que tá rolando)
+00:12:33 AUTO │       → like (achei legal, vou curtir)
+00:13:29 AUTO │   ● já está no app
+00:13:29 AUTO │       → post (tô com vontade de postar)
+00:15:47 AUTO │       ✓ post em 138.5s
+00:15:47 AUTO │       → harvest (quero ver o que tá rolando)
+00:21:49 AUTO │   ● já está no app
+00:21:50 AUTO │       → harvest (quero ver o que tá rolando)
+00:21:50 AUTO │       → harvest (quero ver o que tá rolando)
+00:23:03 AUTO │   ○ fora do app: fora do app até 01:28
+00:31:16 AUTO │   ○ fora do app: fora do app até 01:28
+00:45:24 AUTO │ deadline atingido — encerrando
+00:45:25 AUTO │ fim — 47 deliberações · {"harvest": 0, "like": 0, "repost": 2, "follow": 0, "post": 4, "reply": 0}
+00:57:41 AUTO │ motor autônomo iniciado — noite · energia 0.91 · humor +0.70 · postar 0.33 · falar 0.36 · fadiga 0.00 · interesses: now playing on, elon musk is, pay teachers a
+00:57:41 AUTO │   ○ fora do app: fora do app até 01:28
+01:06:06 AUTO │   ○ fora do app: fora do app até 01:28
+01:15:13 AUTO │   ○ fora do app: fora do app até 01:28
+01:27:36 AUTO │   ○ fora do app: fora do app até 01:28
+01:38:46 AUTO │   ● abriu o app (4 min, noite)
+01:38:47 AUTO │       → harvest (quero ver o que tá rolando)
+01:41:55 AUTO │   ● já está no app
+01:41:55 AUTO │       · só olhando o feed
+01:41:55 AUTO │       → like (achei legal, vou curtir)
+01:47:48 AUTO │   ● já está no app
+01:47:49 AUTO │       → like (achei legal, vou curtir)
+01:47:49 AUTO │       → harvest (quero ver o que tá rolando)
+01:49:42 AUTO │   ○ fora do app: fora do app até 02:20
+01:49:42 AUTO │   [noite · energia 0.99 · humor +0.62 · postar 0.69 · falar 0.33 · fadiga 0.17 · interesses: now playing on, jane street denied, elon musk is]
+01:59:59 AUTO │   ○ fora do app: fora do app até 02:20
+02:06:07 AUTO │   ○ fora do app: fora do app até 02:20
+02:18:38 AUTO │   ○ fora do app: fora do app até 02:20
+02:30:05 AUTO │   ○ fora do app: sem vontade (urge=0.76)
+02:40:05 AUTO │   ● abriu o app (23 min, noite)
+02:40:06 AUTO │       → harvest (quero ver o que tá rolando)
+02:40:07 AUTO │       → post (tô com vontade de postar)
+02:41:44 AUTO │   ● já está no app
+02:41:44 AUTO │       → post (tô com vontade de postar)
+02:41:44 AUTO │       → post (tô com vontade de postar)
+02:46:46 AUTO │   ● já está no app
+02:46:46 AUTO │       → post (tô com vontade de postar)
+02:46:46 AUTO │       → post (tô com vontade de postar)
+02:49:38 AUTO │   ● já está no app
+02:49:38 AUTO │       → post (tenho mais a dizer que cabe num post)
+02:50:25 AUTO │       ✓ post em 46.6s
+02:50:25 AUTO │   [noite · energia 0.81 · humor +0.69 · postar 0.10 · falar 0.32 · fadiga 0.51 · interesses: now playing on, british airways will, openai is in]
+02:54:25 AUTO │   ● já está no app
+02:54:25 AUTO │       → harvest (quero ver o que tá rolando)
+03:00:57 AUTO │   ● já está no app
+03:00:58 AUTO │       → harvest (quero ver o que tá rolando)
+03:05:08 AUTO │   ● já está no app
+03:05:08 AUTO │       → follow (quero seguir gente nova)
+03:05:09 AUTO │       → post (tenho mais a dizer que cabe num post)
+03:07:44 AUTO │   ○ fora do app: fora do app até 04:00
+03:13:45 AUTO │   ○ fora do app: fora do app até 04:00
+03:20:45 AUTO │   ○ fora do app: fora do app até 04:00
+03:30:18 AUTO │   ○ fora do app: fora do app até 04:00
+03:37:19 AUTO │   ○ fora do app: fora do app até 04:00
+03:37:20 AUTO │   [madrugada · energia 0.92 · humor +0.63 · postar 0.47 · falar 0.31 · fadiga 0.06 · interesses: now playing on, british airways will, openai is in]
+03:48:01 AUTO │   ○ fora do app: fora do app até 04:00
+03:57:18 AUTO │   ○ fora do app: fora do app até 04:00
+04:01:48 AUTO │   ● abriu o app (7 min, madrugada)
+04:01:49 AUTO │       · só olhando o feed
+04:05:35 AUTO │   ● já está no app
+04:05:35 AUTO │       → post (tô com vontade de postar)
+04:05:37 AUTO │       → repost (vale repassar)
+04:09:14 AUTO │   ● já está no app
+04:09:15 AUTO │       → like (achei legal, vou curtir)
+04:09:15 AUTO │       → post (tô com vontade de postar)
+04:09:50 AUTO │       ✓ post em 34.9s
+04:20:45 AUTO │ motor autônomo iniciado — madrugada · energia 0.83 · humor +0.86 · postar 0.00 · falar 0.31 · fadiga 0.43 · interesses: now playing on, british airways will, openai is in
+04:20:45 AUTO │   ○ fora do app: fora do app até 05:20
+04:20:45 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+04:35:18 AUTO │   ○ fora do app: fora do app até 05:20
+04:35:18 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+04:44:19 AUTO │ motor autônomo iniciado — madrugada · energia 0.83 · humor +0.86 · postar 0.00 · falar 0.31 · fadiga 0.43 · interesses: now playing on, british airways will, openai is in
+04:44:19 AUTO │   ○ fora do app: fora do app até 05:20
+04:44:19 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+04:54:17 AUTO │   ○ fora do app: fora do app até 05:20
+05:07:01 AUTO │   ○ fora do app: fora do app até 05:20
+05:07:01 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+05:13:45 AUTO │ motor autônomo iniciado — madrugada · energia 0.83 · humor +0.86 · postar 0.00 · falar 0.31 · fadiga 0.43 · interesses: now playing on, british airways will, openai is in
+05:13:45 AUTO │   ○ fora do app: fora do app até 05:20
+05:13:45 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+05:19:08 AUTO │   ○ fora do app: fora do app até 05:20
+05:30:36 AUTO │   ● abriu o app (7 min, madrugada)
+05:30:37 AUTO │       ⊘ maestro vetou repost (silencioso)
+05:30:37 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+05:36:17 AUTO │ motor autônomo iniciado — madrugada · energia 0.83 · humor +0.86 · postar 0.00 · falar 0.31 · fadiga 0.43 · interesses: now playing on, british airways will, openai is in
+05:36:17 AUTO │   ○ fora do app: sem vontade (urge=0.37)
+05:36:17 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+05:42:09 AUTO │   ● abriu o app (4 min, madrugada)
+05:42:09 AUTO │       ⊘ maestro vetou harvest (silencioso)
+05:46:12 AUTO │   ● já está no app
+05:46:12 AUTO │       ⊘ maestro vetou harvest (silencioso)
+05:46:12 AUTO │       ⊘ maestro vetou like
+05:46:12 AUTO │   [madrugada · energia 0.80 · humor +0.82 · postar 0.07 · falar 0.30 · fadiga 0.60 · interesses: now playing on, british airways will, openai is in]
+05:46:12 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+05:48:19 AUTO │   ● já está no app
+05:48:19 AUTO │       ⊘ maestro vetou harvest (silencioso)
+05:48:19 AUTO │       ⊘ maestro vetou harvest
+05:48:20 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+05:49:50 AUTO │   ○ fora do app: fora do app até 07:00
+05:57:51 AUTO │   ○ fora do app: fora do app até 07:00
+05:57:51 AUTO │   [madrugada · energia 0.86 · humor +0.76 · postar 0.13 · falar 0.30 · fadiga 0.36 · interesses: now playing on, british airways will, openai is in]
+05:57:51 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+06:02:42 AUTO │   ○ fora do app: fora do app até 07:00
+06:02:42 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+06:12:02 AUTO │   ○ fora do app: fora do app até 07:00
+06:12:03 AUTO │   [madrugada · energia 0.91 · humor +0.69 · postar 0.17 · falar 0.30 · fadiga 0.13 · interesses: now playing on, british airways will, openai is in]
+06:12:03 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+06:26:00 AUTO │   ○ fora do app: fora do app até 07:00
+06:26:00 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+06:26:01 AUTO │   [madrugada · energia 0.93 · humor +0.65 · postar 0.20 · falar 0.31 · fadiga 0.01 · interesses: now playing on, british airways will, openai is in]
+06:26:01 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+06:37:58 AUTO │   ○ fora do app: fora do app até 07:00
+06:37:58 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+06:37:58 AUTO │   [madrugada · energia 0.92 · humor +0.60 · postar 0.22 · falar 0.31 · fadiga 0.00 · interesses: now playing on, british airways will, openai is in]
+06:37:58 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+06:45:14 AUTO │   ○ fora do app: fora do app até 07:00
+06:57:56 AUTO │   ○ fora do app: fora do app até 07:00
+06:57:56 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+06:57:57 AUTO │   [madrugada · energia 0.94 · humor +0.53 · postar 0.25 · falar 0.31 · fadiga 0.00 · interesses: now playing on, british airways will, openai is in]
+06:57:57 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+07:08:40 AUTO │   ● abriu o app (4 min, madrugada)
+07:08:40 AUTO │       ⊘ maestro vetou harvest (normal)
+07:08:40 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+07:08:40 AUTO │   [madrugada · energia 0.90 · humor +0.62 · postar 0.26 · falar 0.32 · fadiga 0.22 · interesses: now playing on, british airways will, openai is in]
+07:08:40 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+07:13:35 AUTO │   ● já está no app
+07:13:35 AUTO │       ⊘ maestro vetou harvest (silencioso)
+07:16:19 AUTO │   ○ fora do app: fora do app até 07:33
+07:25:48 AUTO │   ○ fora do app: fora do app até 07:33
+07:25:48 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+07:25:49 AUTO │   [madrugada · energia 0.97 · humor +0.64 · postar 0.28 · falar 0.31 · fadiga 0.07 · interesses: now playing on, british airways will, openai is in]
+07:25:49 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+07:32:18 AUTO │   ○ fora do app: fora do app até 07:33
+07:38:39 AUTO │   ○ fora do app: sem vontade (urge=0.53)
+07:38:39 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+07:38:40 AUTO │   [madrugada · energia 0.97 · humor +0.60 · postar 0.30 · falar 0.31 · fadiga 0.00 · interesses: now playing on, british airways will, openai is in]
+07:38:40 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+07:53:37 AUTO │   ● abriu o app (16 min, madrugada)
+07:53:37 AUTO │       ⊘ maestro vetou harvest (silencioso)
+07:53:37 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+07:53:38 AUTO │   [madrugada · energia 0.95 · humor +0.64 · postar 0.31 · falar 0.32 · fadiga 0.13 · interesses: now playing on, voters in quebec, vice president jd]
+07:53:38 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+07:54:43 AUTO │   ● já está no app
+07:54:43 AUTO │       ⊘ maestro vetou harvest (normal)
+07:54:43 AUTO │       ⊘ maestro vetou like
+07:55:59 AUTO │   ● já está no app
+07:55:59 AUTO │       ⊘ maestro vetou harvest (normal)
+08:02:42 AUTO │   ● já está no app
+08:02:42 AUTO │       ⊘ maestro vetou harvest (normal)
+08:02:42 AUTO │       ⊘ maestro vetou harvest
+08:02:42 AUTO │   [manhã · energia 0.85 · humor +0.83 · postar 0.31 · falar 0.31 · fadiga 0.58 · interesses: now playing on, voters in quebec, vice president jd]
+08:02:42 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+08:05:44 AUTO │   ● já está no app
+08:05:44 AUTO │       ⊘ maestro vetou harvest (normal)
+08:05:44 AUTO │       ⊘ maestro vetou measure
+08:05:44 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+08:07:13 AUTO │   ● já está no app
+08:07:13 AUTO │       ⊘ maestro vetou harvest (silencioso)
+08:07:14 AUTO │   [manhã · energia 0.90 · humor +0.95 · postar 0.31 · falar 0.30 · fadiga 0.68 · interesses: now playing on, voters in quebec, vice president jd]
+08:07:14 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+08:09:57 AUTO │   ○ fora do app: fora do app até 08:32
+08:15:37 AUTO │   ○ fora do app: fora do app até 08:32
+08:15:37 AUTO │   [manhã · energia 0.93 · humor +0.79 · postar 0.32 · falar 0.30 · fadiga 0.43 · interesses: now playing on, voters in quebec, vice president jd]
+08:15:37 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+08:30:31 AUTO │   ○ fora do app: fora do app até 08:32
+08:30:31 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+08:30:32 AUTO │   [manhã · energia 0.92 · humor +0.71 · postar 0.33 · falar 0.31 · fadiga 0.30 · interesses: now playing on, voters in quebec, vice president jd]
+08:30:32 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+08:40:58 AUTO │   ○ fora do app: sem vontade (urge=0.45)
+08:40:58 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+08:40:58 AUTO │   [manhã · energia 0.91 · humor +0.67 · postar 0.33 · falar 0.31 · fadiga 0.21 · interesses: now playing on, voters in quebec, vice president jd]
+08:40:58 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+08:49:11 AUTO │   ● abriu o app (8 min, manhã)
+08:49:11 AUTO │       ⊘ maestro vetou harvest (silencioso)
+08:49:12 AUTO │   [manhã · energia 0.89 · humor +0.72 · postar 0.34 · falar 0.31 · fadiga 0.34 · interesses: now playing on, voters in quebec, vice president jd]
+08:49:12 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+08:52:12 AUTO │   ● já está no app
+08:52:12 AUTO │       ⊘ maestro vetou harvest (silencioso)
+08:52:12 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+08:58:17 AUTO │   ● já está no app
+08:58:18 AUTO │       ⊘ maestro vetou harvest (normal)
+08:58:18 AUTO │   [manhã · energia 0.94 · humor +0.82 · postar 0.34 · falar 0.31 · fadiga 0.42 · interesses: now playing on, voters in quebec, vice president jd]
+08:58:18 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+09:00:58 AUTO │   ○ fora do app: fora do app até 09:40
+09:00:58 AUTO │   [manhã · energia 0.96 · humor +0.74 · postar 0.34 · falar 0.31 · fadiga 0.31 · interesses: now playing on, voters in quebec, vice president jd]
+09:00:58 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+09:00:58 AUTO │   [sem dados ainda (primeira medição pendente)]
+09:10:57 AUTO │   ○ fora do app: fora do app até 09:40
+09:10:57 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+09:10:58 AUTO │   [manhã · energia 0.99 · humor +0.70 · postar 0.34 · falar 0.31 · fadiga 0.17 · interesses: now playing on, voters in quebec, vice president jd]
+09:10:58 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+09:25:47 AUTO │   ○ fora do app: fora do app até 09:40
+09:25:47 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+09:25:49 AUTO │   [manhã · energia 0.98 · humor +0.66 · postar 0.35 · falar 0.31 · fadiga 0.11 · interesses: now playing on, voters in quebec, vice president jd]
+09:25:49 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+09:29:58 AUTO │   ○ fora do app: fora do app até 09:40
+09:40:02 AUTO │   ○ fora do app: fora do app até 09:40
+09:40:02 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+09:40:03 AUTO │   [manhã · energia 0.98 · humor +0.56 · postar 0.35 · falar 0.31 · fadiga 0.00 · interesses: now playing on, voters in quebec, vice president jd]
+09:40:03 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+09:51:43 AUTO │   ● abriu o app (8 min, manhã)
+09:51:43 AUTO │       ⊘ maestro vetou like (silencioso)
+09:51:43 AUTO │       ⊘ maestro vetou like
+09:51:43 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+09:51:43 AUTO │   [manhã · energia 0.95 · humor +0.68 · postar 0.36 · falar 0.32 · fadiga 0.21 · interesses: now playing on, voters in quebec, vice president jd]
+09:51:43 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+09:52:45 AUTO │   ● já está no app
+09:52:45 AUTO │       ⊘ maestro vetou harvest (normal)
+09:53:54 AUTO │   ● já está no app
+09:53:54 AUTO │       · só olhando o feed
+09:58:32 AUTO │   ● já está no app
+09:58:33 AUTO │       ⊘ maestro vetou like (normal)
+09:58:34 AUTO │   [manhã · energia 0.87 · humor +0.87 · postar 0.35 · falar 0.31 · fadiga 0.79 · interesses: now playing on, voters in quebec, vice president jd]
+09:58:34 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+10:01:31 AUTO │   ● já está no app
+10:01:31 AUTO │       ⊘ maestro vetou harvest (normal)
+10:01:31 AUTO │       ⊘ maestro vetou reply
+10:02:37 AUTO │   ○ fora do app: fora do app até 10:37
+10:02:37 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+10:09:26 AUTO │   ○ fora do app: fora do app até 10:37
+10:09:26 AUTO │   [manhã · energia 0.98 · humor +0.81 · postar 0.35 · falar 0.39 · fadiga 0.48 · interesses: now playing on, kenya has confirmed, voters in quebec]
+10:09:26 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+10:21:07 AUTO │   ○ fora do app: fora do app até 10:37
+10:21:07 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+10:21:09 AUTO │   [manhã · energia 0.99 · humor +0.74 · postar 0.35 · falar 0.39 · fadiga 0.35 · interesses: now playing on, kenya has confirmed, voters in quebec]
+10:21:09 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+10:32:51 AUTO │   ○ fora do app: fora do app até 10:37
+10:32:51 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+10:32:51 AUTO │   [manhã · energia 1.00 · humor +0.68 · postar 0.36 · falar 0.39 · fadiga 0.23 · interesses: now playing on, kenya has confirmed, voters in quebec]
+10:32:51 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+10:43:27 AUTO │   ○ fora do app: sem vontade (urge=0.53)
+10:43:27 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+10:43:28 AUTO │   [manhã · energia 0.98 · humor +0.61 · postar 0.36 · falar 0.38 · fadiga 0.16 · interesses: now playing on, kenya has confirmed, voters in quebec]
+10:43:28 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+10:49:53 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+10:53:56 AUTO │   ○ fora do app: sem vontade (urge=0.54)
+10:53:56 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+10:53:56 AUTO │   [manhã · energia 0.95 · humor +0.54 · postar 0.36 · falar 0.37 · fadiga 0.04 · interesses: now playing on, kenya has confirmed, voters in quebec]
+10:53:56 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+11:02:17 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+11:02:18 AUTO │   [manhã · energia 0.95 · humor +0.49 · postar 0.36 · falar 0.36 · fadiga 0.00 · interesses: now playing on, kenya has confirmed, voters in quebec]
+11:02:18 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+11:07:54 AUTO │ deadline atingido — encerrando
+11:07:54 AUTO │ fim — 49 deliberações · {}
+11:11:27 AUTO │ motor autônomo iniciado — manhã · energia 0.95 · humor +0.49 · postar 0.36 · falar 0.36 · fadiga 0.00 · interesses: now playing on, kenya has confirmed, voters in quebec
+11:11:27 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+11:11:27 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+11:20:14 AUTO │   ● abriu o app (18 min, manhã)
+11:20:14 AUTO │       ⊘ maestro vetou reply (normal)
+11:20:14 AUTO │   [manhã · energia 0.94 · humor +0.47 · postar 0.36 · falar 0.46 · fadiga 0.12 · interesses: now playing on, kenya has confirmed, voters in quebec]
+11:20:14 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+11:21:12 AUTO │   ● já está no app
+11:21:12 AUTO │       ⊘ maestro vetou reply (normal)
+11:22:02 AUTO │   ● já está no app
+11:22:02 AUTO │       ⊘ maestro vetou reply (normal)
+11:22:02 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+11:28:28 AUTO │   ● já está no app
+11:29:19 AUTO │       ⊘ maestro vetou reply (silencioso)
+11:29:20 AUTO │   [manhã · energia 0.86 · humor +0.72 · postar 0.35 · falar 0.73 · fadiga 0.55 · interesses: now playing on, france and germanys, a blockbuster year]
+11:29:20 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+11:36:35 AUTO │   ● já está no app
+11:37:25 AUTO │       ⊘ maestro vetou reply (silencioso)
+11:37:25 AUTO │       ⊘ maestro vetou reply
+11:37:25 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+11:37:25 AUTO │   [manhã · energia 0.83 · humor +0.78 · postar 0.35 · falar 0.80 · fadiga 0.71 · interesses: now playing on, france and germanys, a blockbuster year]
+11:37:25 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+11:42:48 AUTO │   ● já está no app
+11:43:39 AUTO │       ⊘ maestro vetou reply (normal)
+11:45:50 AUTO │   ○ fora do app: fora do app até 13:27
+11:45:50 AUTO │   [manhã · energia 0.93 · humor +0.79 · postar 0.35 · falar 0.72 · fadiga 0.46 · interesses: now playing on, france and germanys, a blockbuster year]
+11:45:50 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+11:56:02 AUTO │   ○ fora do app: fora do app até 13:27
+11:56:02 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+11:56:03 AUTO │   [manhã · energia 0.95 · humor +0.75 · postar 0.36 · falar 0.69 · fadiga 0.33 · interesses: now playing on, france and germanys, a blockbuster year]
+11:56:03 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+12:08:10 AUTO │   ○ fora do app: fora do app até 13:27
+12:08:10 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+12:08:11 AUTO │   [manhã · energia 0.95 · humor +0.73 · postar 0.36 · falar 0.65 · fadiga 0.22 · interesses: now playing on, france and germanys, a blockbuster year]
+12:08:11 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+12:17:02 AUTO │   ○ fora do app: fora do app até 13:27
+12:17:02 AUTO │   [manhã · energia 0.95 · humor +0.68 · postar 0.36 · falar 0.62 · fadiga 0.13 · interesses: now playing on, france and germanys, a blockbuster year]
+12:17:02 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+12:25:51 AUTO │   ○ fora do app: fora do app até 13:27
+12:25:51 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+12:25:52 AUTO │   [manhã · energia 0.92 · humor +0.62 · postar 0.36 · falar 0.60 · fadiga 0.08 · interesses: now playing on, france and germanys, a blockbuster year]
+12:25:52 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+12:31:38 AUTO │   ○ fora do app: fora do app até 13:27
+12:40:13 AUTO │   ○ fora do app: fora do app até 13:27
+12:40:13 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+12:40:14 AUTO │   [manhã · energia 0.95 · humor +0.58 · postar 0.36 · falar 0.55 · fadiga 0.00 · interesses: now playing on, france and germanys, a blockbuster year]
+12:40:14 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+12:52:57 AUTO │   ○ fora do app: fora do app até 13:27
+12:52:57 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+12:52:58 AUTO │   [manhã · energia 0.94 · humor +0.54 · postar 0.37 · falar 0.53 · fadiga 0.00 · interesses: now playing on, france and germanys, a blockbuster year]
+12:52:58 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+12:58:59 AUTO │   ○ fora do app: fora do app até 13:27
+12:58:59 AUTO │   [manhã · energia 0.94 · humor +0.50 · postar 0.37 · falar 0.51 · fadiga 0.00 · interesses: now playing on, france and germanys, a blockbuster year]
+12:58:59 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+13:05:26 AUTO │   ○ fora do app: fora do app até 13:27
+13:05:26 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+13:13:14 AUTO │   ○ fora do app: fora do app até 13:27
+13:13:15 AUTO │   [manhã · energia 0.92 · humor +0.48 · postar 0.37 · falar 0.48 · fadiga 0.00 · interesses: now playing on, france and germanys, a blockbuster year]
+13:13:15 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+13:18:01 AUTO │   ○ fora do app: fora do app até 13:27
+13:18:01 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+13:28:32 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+13:28:32 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+13:28:33 AUTO │   [manhã · energia 0.94 · humor +0.44 · postar 0.37 · falar 0.45 · fadiga 0.00 · interesses: now playing on, france and germanys, a blockbuster year]
+13:28:33 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+13:35:45 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+13:49:05 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+13:49:05 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+13:49:07 AUTO │   [manhã · energia 0.97 · humor +0.39 · postar 0.37 · falar 0.43 · fadiga 0.00 · interesses: now playing on, france and germanys, a blockbuster year]
+13:49:07 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+14:04:06 AUTO │   ● abriu o app (23 min, manhã)
+14:04:56 AUTO │       ⊘ maestro vetou reply (silencioso)
+14:04:56 AUTO │       ⊘ maestro vetou reply
+14:04:56 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+14:04:58 AUTO │   [manhã · energia 0.92 · humor +0.45 · postar 0.38 · falar 0.65 · fadiga 0.13 · interesses: now playing on, france and germanys, a blockbuster year]
+14:04:58 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+14:05:48 AUTO │   ● já está no app
+14:05:48 AUTO │       ⊘ maestro vetou reply (normal)
+14:05:48 AUTO │   [manhã · energia 0.89 · humor +0.51 · postar 0.37 · falar 0.84 · fadiga 0.33 · interesses: now playing on, france and germanys, a blockbuster year]
+14:05:48 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+14:12:14 AUTO │   ● já está no app
+14:12:15 AUTO │       ⊘ maestro vetou reply (normal)
+14:15:44 AUTO │   ● já está no app
+14:15:45 AUTO │       ⊘ maestro vetou reply (normal)
+14:15:45 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+14:15:45 AUTO │   [manhã · energia 0.86 · humor +0.62 · postar 0.37 · falar 0.85 · fadiga 0.52 · interesses: now playing on, the us economic, france and germanys]
+14:15:45 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+14:23:20 AUTO │   ● já está no app
+14:23:20 AUTO │       ⊘ maestro vetou reply (silencioso)
+14:24:49 AUTO │   ● já está no app
+14:24:49 AUTO │       ⊘ maestro vetou reply (silencioso)
+14:24:49 AUTO │       ⊘ maestro vetou reply
+14:24:51 AUTO │   [manhã · energia 0.80 · humor +0.74 · postar 0.36 · falar 0.76 · fadiga 0.75 · interesses: now playing on, the us economic, join bloomberg government]
+14:24:51 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+14:31:28 AUTO │   ● já está no app
+14:32:19 AUTO │       ⊘ maestro vetou reply (silencioso)
+14:32:19 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+14:33:26 AUTO │   ○ fora do app: fora do app até 15:49
+14:33:26 AUTO │   [manhã · energia 0.90 · humor +0.78 · postar 0.36 · falar 0.79 · fadiga 0.54 · interesses: now playing on, join bloomberg government, the us economic]
+14:33:26 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+14:40:51 AUTO │   ○ fora do app: fora do app até 15:49
+14:50:24 AUTO │   ○ fora do app: fora do app até 15:49
+14:50:24 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+14:50:25 AUTO │   [manhã · energia 0.92 · humor +0.70 · postar 0.36 · falar 0.71 · fadiga 0.34 · interesses: now playing on, join bloomberg government, the us economic]
+14:50:25 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+14:50:25 AUTO │   [sem dados ainda (primeira medição pendente)]
+14:56:09 AUTO │   ○ fora do app: fora do app até 15:49
+15:02:51 AUTO │   ○ fora do app: fora do app até 15:49
+15:02:51 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+15:02:52 AUTO │   [tarde · energia 0.94 · humor +0.61 · postar 0.36 · falar 0.65 · fadiga 0.17 · interesses: now playing on, join bloomberg government, the us economic]
+15:02:52 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+15:11:22 AUTO │   ○ fora do app: fora do app até 15:49
+15:11:22 AUTO │   [tarde · energia 0.97 · humor +0.58 · postar 0.36 · falar 0.62 · fadiga 0.04 · interesses: now playing on, join bloomberg government, the us economic]
+15:11:22 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+15:26:16 AUTO │   ○ fora do app: fora do app até 15:49
+15:26:16 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+15:26:17 AUTO │   [tarde · energia 0.97 · humor +0.55 · postar 0.37 · falar 0.59 · fadiga 0.00 · interesses: now playing on, join bloomberg government, the us economic]
+15:26:17 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+15:31:03 AUTO │   ○ fora do app: fora do app até 15:49
+15:37:02 AUTO │   ○ fora do app: fora do app até 15:49
+15:37:02 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+15:37:02 AUTO │   [tarde · energia 0.98 · humor +0.45 · postar 0.37 · falar 0.55 · fadiga 0.00 · interesses: now playing on, join bloomberg government, the us economic]
+15:37:02 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+15:51:59 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+15:51:59 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+15:52:01 AUTO │   [tarde · energia 0.98 · humor +0.43 · postar 0.37 · falar 0.53 · fadiga 0.00 · interesses: now playing on, join bloomberg government, the us economic]
+15:52:01 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+16:00:27 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+16:00:27 AUTO │   [tarde · energia 0.97 · humor +0.43 · postar 0.37 · falar 0.51 · fadiga 0.00 · interesses: now playing on, join bloomberg government, the us economic]
+16:00:27 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+16:05:02 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+16:05:02 MAESTRO │   postura: silencioso → normal  (taxa 0.00, 0 erros, 0 tipos)
+16:09:18 AUTO │   ○ fora do app: sem vontade (urge=0.74)
+16:09:19 AUTO │   [tarde · energia 0.93 · humor +0.35 · postar 0.37 · falar 0.48 · fadiga 0.00 · interesses: now playing on, join bloomberg government, the us economic]
+16:09:19 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+16:14:45 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+16:23:49 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+16:23:49 MAESTRO │   postura: normal → silencioso  (999 min sem ação útil — melhor descansar)
+16:23:50 AUTO │   [tarde · energia 0.92 · humor +0.35 · postar 0.37 · falar 0.45 · fadiga 0.00 · interesses: now playing on, join bloomberg government, the us economic]
+16:23:50 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+16:33:36 AUTO │   ○ fora do app: ocupado (aula/faculdade)
+16:33:36 AUTO │   [tarde · energia 0.92 · humor +0.30 · postar 0.37 · falar 0.44 · fadiga 0.00 · interesses: now playing on, join bloomberg government, the us economic]
+16:33:36 AUTO │   [postura silencioso (decidiu ficar quieto) · taxa 0.00 · erros 0 · 0 ações · 0 tipos · latência 0.0s]
+16:41:09 AUTO │ deadline atingido — encerrando
+16:41:11 AUTO │ fim — 45 deliberações · {}
