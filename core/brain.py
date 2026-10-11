@@ -60,7 +60,7 @@ class Ollama(Provider):
     name = "ollama"
 
     def __init__(self, host: str = "http://localhost:11434",
-                 model: str = "qwen2.5:7b-instruct"):
+                 model: str = "qwen2.5:14b-instruct"):
         self.host = host.rstrip("/")
         self.model = os.environ.get("OLLAMA_MODEL", model)
 

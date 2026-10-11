@@ -7,8 +7,8 @@
 # passa a usar o modelo automaticamente, sem trocar uma linha de código.
 set -uo pipefail
 
-PRIMARY="${OLLAMA_MODEL:-qwen2.5:7b-instruct}"
-FALLBACKS="${OLLAMA_FALLBACKS:-qwen2.5:3b-instruct llama3.2:3b qwen2.5:1.5b-instruct}"
+PRIMARY="${OLLAMA_MODEL:-qwen2.5:14b-instruct}"
+FALLBACKS="${OLLAMA_FALLBACKS:-qwen2.5:7b-instruct qwen2.5:3b-instruct llama3.2:3b qwen2.5:1.5b-instruct}"
 HOST="${OLLAMA_HOST:-http://localhost:11434}"
 
 say() { echo "[brain] $*"; }

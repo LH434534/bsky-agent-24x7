@@ -11,7 +11,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  OLLAMA_MODEL: qwen2.5:7b-instruct
+  # Modelo local gratuito mais forte; cai para 7B/3B se o runner não comportar.
+  OLLAMA_MODEL: qwen2.5:14b-instruct
+  OLLAMA_FALLBACKS: qwen2.5:7b-instruct qwen2.5:3b-instruct llama3.2:3b
   OLLAMA_HOST:  http://localhost:11434
 
 jobs:
