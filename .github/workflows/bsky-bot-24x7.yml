@@ -2,7 +2,9 @@ name: bsky-bot-24x7
 
 on:
   schedule:
-    - cron: "*/30 * * * *"      # tenta religar a cada 30 min — nunca fica parado
+    # Quatro sessões de 5h30 por dia. O job já fica vivo; a cada 30 min
+    # criaria uma fila de execuções, pois o limite de um job é 6h.
+    - cron: "7 0,6,12,18 * * *"
   workflow_dispatch:            # disparo manual pelo botão ou pela API
 
 # só um job por vez: o próximo cron espera o anterior terminar, sem sobrepor
@@ -18,7 +20,7 @@ env:
 
 jobs:
   bot:
-    runs-on: ubuntu-latest        # 4 vCPU / 16 GB RAM — cabe um 7B quantizado
+    runs-on: ubuntu-latest        # runner público gratuito; 14B pode cair para 7B/3B
     timeout-minutes: 350          # teto do Actions é 360
     permissions:
       contents: write             # necessário para commitar o estado

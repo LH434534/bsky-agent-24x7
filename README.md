@@ -6,10 +6,42 @@ auto-reparo + auto-religamento que não depende de ninguém.
 
 ---
 
-## 1. Como ligar
+## 1. Como ligar no GitHub Actions gratuitamente
+
+Este repositório é **público**, então os runners padrão hospedados pelo GitHub
+Actions não consomem minutos pagos. Cada job do GitHub-hosted runner pode durar
+no máximo 6 horas; por isso o workflow usa quatro sessões de aproximadamente
+5h30, em vez de iniciar um novo job a cada 30 minutos.
+
+### Passo a passo
+
+1. Abra `LH434534/bsky-agent-24x7` no GitHub.
+2. Vá em **Settings → Secrets and variables → Actions → New repository secret**.
+3. Crie exatamente estes dois secrets:
+
+   | Secret | Valor |
+   |---|---|
+   | `BSKY_HANDLE` | seu handle, por exemplo `usuario.bsky.social` |
+   | `BSKY_APP_PASSWORD` | uma App Password do Bluesky, não sua senha principal |
+
+   No Bluesky, crie a App Password em **Settings → Advanced → App passwords**.
+4. Vá em **Actions**, selecione `bsky-bot-24x7` e clique em **Enable workflow**
+   se ele estiver desativado.
+5. Clique em **Run workflow** uma vez para testar. Depois, o cron inicia as
+   sessões automaticamente nos horários `00:07`, `06:07`, `12:07` e `18:07` UTC.
+
+6. Na primeira execução, confira no log `brain provider: ollama` e
+   `MODELO REAL ATIVO: qwen2.5:14b-instruct`. Se o runner não comportar o 14B,
+   o instalador usa automaticamente 7B, 3B ou o motor offline.
+
+> **Importante:** não coloque credenciais no código, no README ou em commits.
+> Se alguma App Password aparecer no histórico público, revogue-a no Bluesky e
+> crie outra imediatamente.
+
+### Execução local (opcional)
 
 ```bash
-cd /data/workspace/bsky_agent
+cd bsky-agent-24x7
 python3 immortal.py plant      # instala as camadas de persistência
 python3 immortal.py supervise  # sobe tudo (ou: systemctl start bsky-immortal)
 python3 immortal.py status     # ver saúde
@@ -55,7 +87,7 @@ Cadeia de provedores — o primeiro que responder ganha:
 
 | Ordem | Provedor | Custo | Nota |
 |---|---|---|---|
-| 1 | **Ollama local** | grátis | `qwen2.5:7b-instruct`. Ilimitado, privado, sem chave. Recomendado. |
+| 1 | **Ollama local** | grátis | `qwen2.5:14b-instruct`, com fallback para 7B/3B. Ilimitado, privado, sem chave. |
 | 2 | Groq | free tier | ~500 tok/s. Precisa `GROQ_API_KEY`. |
 | 3 | OpenRouter | modelos grátis | `OPENROUTER_API_KEY`. |
 | 4 | HuggingFace | serverless | `HF_TOKEN`. |
@@ -184,7 +216,7 @@ escrever código quebrado, ela detecta antes do restart virar loop.
 
 ```ini
 BSKY_HANDLE=his08.bsky.social
-BSKY_APP_PASSWORD=mtma-vgwq-qi6h-dvch
+BSKY_APP_PASSWORD=              # use um Secret do GitHub; não grave aqui
 TZ_OFFSET=-3              # fuso local → controla quiet hours
 
 DAY_POSTS=20              # caps diários
@@ -197,7 +229,7 @@ TICK_MIN=60               # intervalo entre decisões do loop
 TICK_MAX=300
 
 OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=qwen2.5:7b-instruct
+OLLAMA_MODEL=qwen2.5:14b-instruct
 ```
 
 ---

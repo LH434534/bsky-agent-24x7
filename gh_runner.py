@@ -2,7 +2,7 @@
 """Runner para GitHub Actions.
 
 Sobe o agente e roda por RUN_MINUTES minutos (o teto de job do Actions é 6h,
-então usamos ~5h45 e um cron de 30 min religa o próximo).
+então usamos ~5h30 e quatro horários de cron por dia iniciam a próxima sessão).
 
 Persistência: o estado (memory.db, corpus.txt, spam_state.json, session.json)
 vive no próprio repositório. Ele é commitado a cada STATE_EVERY_MIN minutos e
