@@ -280,11 +280,20 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    try:
-        sys.exit(main())
-    except BaseException:
+    restarts = 0
+    while True:
         try:
-            log("EXCEÇÃO FATAL (topo):\n" + traceback.format_exc()[-1500:])
-        except Exception:
-            traceback.print_exc()
-        raise
+            sys.exit(main())
+        except KeyboardInterrupt:
+            sys.exit(130)
+        except BaseException:
+            restarts += 1
+            try:
+                log("EXCEÇÃO FATAL (topo):\n" + traceback.format_exc()[-1500:])
+            except Exception:
+                traceback.print_exc()
+            if time.time() >= DEADLINE or restarts >= 8:
+                raise
+            delay = min(60, 10 * restarts)
+            log(f"auto-reparo: reiniciando o agente em {delay}s ({restarts}/8)")
+            time.sleep(delay)
