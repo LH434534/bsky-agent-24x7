@@ -24,6 +24,20 @@ from .persona import Persona, DEFAULT as DEFAULT_PERSONA
 
 log = logging.getLogger("brain")
 
+
+def reply_relevant(parent: str, reply: str) -> bool:
+    """Só aprova resposta que preserve ao menos uma âncora do post original."""
+    stop = {"para", "como", "mais", "muito", "isso", "essa", "esse", "aqui", "sobre",
+            "quando", "porque", "qual", "quem", "com", "uma", "uns", "umas", "que",
+            "não", "sim", "mas", "pra", "por", "dos", "das", "nos", "nas", "você", "vocês"}
+
+    def stems(value: str) -> set[str]:
+        return {w[:5] for w in re.findall(r"[A-Za-zÀ-ɏ0-9]{4,}", (value or "").casefold())
+                if w not in stop}
+
+    source, answer = stems(parent), stems(reply)
+    return bool(source and answer and source & answer)
+
 DATA = Path(os.environ.get("BSKY_AGENT_DATA", Path(__file__).resolve().parent.parent / "data"))
 CORPUS = DATA / "corpus.txt"
 
@@ -385,7 +399,8 @@ class Brain:
         return self.gen(
             f"Post de @{author or 'alguém'}:\n\"{post_text}\"\n\n"
             f"Escreva sua resposta. Lembrete: sem abreviações, sem elogio ao post, "
-            f"entre 20 e 160 caracteres." + extra,
+            f"entre 20 e 160 caracteres. Use pelo menos uma palavra-chave do post e não mude de assunto; "
+            f"se não houver algo pertinente, responda apenas SILÊNCIO." + extra,
             system=self.P.reply, max_tokens=70, temperature=1.05)
 
     def pick_topics(self, n: int = 3) -> List[str]:

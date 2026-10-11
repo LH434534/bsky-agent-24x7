@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from .atproto import Bsky, PostRef, did_from_uri
 from .antispam import SpamGuard
-from .brain import Brain
+from .brain import Brain, reply_relevant
 from .memory import Memory
 
 log = logging.getLogger("actions")
@@ -348,7 +348,8 @@ class Actions:
             ctx = self.S.context_for(cand["did"]) if self.S is not None else ""
             text = self.brain.write_reply(cand["text"], cand["handle"], context=ctx)
             clean = self._safe(text)
-            if not clean:
+            if not clean or not reply_relevant(cand["text"], clean):
+                log.info("reply descartado: fora do assunto de @%s", cand["handle"])
                 self.m.mark_seen(cand["uri"])
                 continue
             if self.g.near_dup(clean):
@@ -509,7 +510,8 @@ class Actions:
                 self.S.note_mutual(did)
             ctx = self.S.context_for(did) if self.S is not None else ""
             reply = self._safe(self.brain.write_reply(text, handle, context=ctx))
-            if not reply:
+            if not reply or not reply_relevant(text, reply):
+                log.info("notificação descartada: resposta fora do assunto")
                 continue
             try:
                 r = self.b.post(reply, reply_to=PostRef(uri, n["cid"]))
@@ -637,7 +639,8 @@ class Actions:
                 continue
             ctx = self.S.context_for(did) if self.S is not None else ""
             reply = self._safe(self.brain.write_reply(txt, handle, context=ctx))
-            if not reply:
+            if not reply or not reply_relevant(txt, reply):
+                log.info("oportunidade descartada: resposta fora do assunto")
                 self.m.mark_seen(p["uri"])
                 continue
             try:
