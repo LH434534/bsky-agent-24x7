@@ -100,7 +100,8 @@ jobs:
           FORCE_POST_TEXT:        ${{ github.event.inputs.force_text || '' }}
           RUN_MINUTES:            ${{ github.event.inputs.force_actions == 'true' && '10' || '330' }}
         run: |
-          python gh_runner.py 2>&1 | tail -120
+          set -o pipefail
+          python gh_runner.py 2>&1 | tee /tmp/bsky-agent.log | tail -120
 
       - name: persist state
         if: always()
