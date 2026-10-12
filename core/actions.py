@@ -218,6 +218,12 @@ class Actions:
         refs = []
         parent = None
         for p in parts[:3]:
+            # Threads still consume one daily post slot per record.  Without
+            # this check, a thread could cross DAY_POSTS when only one slot
+            # remained because the old code recorded the whole thread once.
+            cap = getattr(self.g.limits, "day_posts", None)
+            if cap is not None and self.g.used_today("post") >= cap:
+                break
             clean = self._safe(p)
             if not clean:
                 continue
@@ -227,12 +233,12 @@ class Actions:
                 log.warning("thread part failed: %s", e)
                 break
             refs.append(r)
+            self.g.record("post")
             self.g.remember_text(clean)
             self.m.log_action("post", text=clean, uri=r.uri, topic=topic)
             time.sleep(random.uniform(6, 18))     # human-ish typing gap
             parent = r
         if refs:
-            self.g.record("post")
             self.m.use_topic(topic)
             log.info("THREAD (%d) on %s", len(refs), topic)
             return True
