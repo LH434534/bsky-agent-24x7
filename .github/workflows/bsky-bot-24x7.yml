@@ -6,6 +6,17 @@ on:
     # criaria uma fila de execuções, pois o limite de um job é 6h.
     - cron: "7 0,6,12,18 * * *"
   workflow_dispatch:            # disparo manual pelo botão ou pela API
+    inputs:
+      force_actions:
+        description: "Executar uma curtida e uma publicação de teste"
+        required: false
+        default: false
+        type: boolean
+      force_text:
+        description: "Texto exato da publicação de teste"
+        required: false
+        default: "Teste de automação: curtindo e publicando pelo agente autônomo."
+        type: string
 
 # só um job por vez: o próximo cron espera o anterior terminar, sem sobrepor
 concurrency:
@@ -83,9 +94,11 @@ jobs:
           DAY_REPOSTS:            "25"
           TICK_MIN:               "60"
           TICK_MAX:               "300"
-          RUN_MINUTES:            "330"
           STATE_EVERY_MIN:        "12"
           OLLAMA_HOST:            ${{ env.OLLAMA_HOST }}
+          TEST_FORCE_ACTIONS:     ${{ github.event.inputs.force_actions || 'false' }}
+          FORCE_POST_TEXT:        ${{ github.event.inputs.force_text || '' }}
+          RUN_MINUTES:            ${{ github.event.inputs.force_actions == 'true' && '10' || '330' }}
         run: |
           python gh_runner.py 2>&1 | tail -120
 

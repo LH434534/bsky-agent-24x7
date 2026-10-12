@@ -199,6 +199,11 @@ def main() -> int:
          "visit": acts.do_visit, "seek": acts.do_seek, "measure": acts.do_measure,
          "image": acts.do_image}
 
+    if os.environ.get("TEST_FORCE_ACTIONS", "").lower() in ("1", "true", "yes"):
+        log("modo teste ativo: uma curtida e uma publicação")
+        acts.do_like()
+        acts.do_post()
+
     beacon = Beacon("worker", every=15).start()
 
     def flush():

@@ -170,6 +170,10 @@ class Actions:
     def do_post(self) -> bool:
         if not self._act("post"):
             return False
+        forced = os.environ.get("FORCE_POST_TEXT", "").strip()
+        if forced:
+            log.info("modo teste: publicação forçada")
+            return self._post_text(forced, with_image=False)
         topic = self._topic()
         style = random.choice([
             "algo que você reparou hoje",
