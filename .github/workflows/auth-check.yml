@@ -1,0 +1,54 @@
+name: auth-check
+
+# Não posta nada. Só responde: a credencial salva ainda funciona?
+# Rode antes de culpar o código — 90% das falhas do bot são App Password revogada.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: instalar requests
+        run: pip install requests
+
+      - name: checar credencial
+        id: auth
+        env:
+          BSKY_HANDLE:       ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+          BSKY_PDS:          https://bsky.social
+        run: |
+          set +e
+          python scripts/check_auth.py
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          set -e
+
+      - name: resumo
+        run: |
+          case "${{ steps.auth.outputs.exit_code }}" in
+            0) echo "### ✅ Credencial válida" >> "$GITHUB_STEP_SUMMARY"
+               echo "O bot deve postar normalmente." >> "$GITHUB_STEP_SUMMARY" ;;
+            2) echo "### ❌ Secret ausente" >> "$GITHUB_STEP_SUMMARY"
+               echo "Defina BSKY_HANDLE e BSKY_APP_PASSWORD em Settings → Secrets." >> "$GITHUB_STEP_SUMMARY" ;;
+            3) echo "### ❌ App Password inválida" >> "$GITHUB_STEP_SUMMARY"
+               echo "Gere uma nova em bsky.app → Settings → Privacy and Security → App Passwords e atualize o secret." >> "$GITHUB_STEP_SUMMARY" ;;
+            4) echo "### ❌ Handle inexistente" >> "$GITHUB_STEP_SUMMARY"
+               echo "Confira BSKY_HANDLE (sem o @)." >> "$GITHUB_STEP_SUMMARY" ;;
+            5) echo "### ⚠️ Sem rede até o PDS" >> "$GITHUB_STEP_SUMMARY"
+               echo "Bloqueio de saída do runner, não é falha de credencial." >> "$GITHUB_STEP_SUMMARY" ;;
+            *) echo "### ⚠️ Código inesperado: ${{ steps.auth.outputs.exit_code }}" >> "$GITHUB_STEP_SUMMARY" ;;
+          esac
+
+      - name: falhar se credencial ruim
+        if: steps.auth.outputs.exit_code != '0'
+        run: exit 1
