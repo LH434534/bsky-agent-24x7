@@ -80,6 +80,39 @@ try:
 except Exception as e:
     out["controle_bsky_app"] = "EXC:" + type(e).__name__
 
+# 5. o DID que o bot usava (último login bem-sucedido nos logs) ainda existe?
+#    Se a conta foi RENOMEADA, o DID continua vivo e devolve o handle atual.
+DID_CONHECIDO = os.environ.get("DID_CONHECIDO", "did:plc:dh6eweh7brbtraluugpvpruj")
+out["did_procurado"] = DID_CONHECIDO
+try:
+    d = requests.get(f"{PUBLIC}/xrpc/app.bsky.actor.getProfile",
+                     params={"actor": DID_CONHECIDO}, timeout=25)
+    out["did_profile_status"] = d.status_code
+    if d.status_code == 200:
+        j = d.json()
+        out["did_handle_atual"] = j.get("handle")
+        out["did_display"] = j.get("displayName")
+        out["did_ativo"] = True
+    else:
+        out["did_ativo"] = False
+        out["did_erro"] = d.text[:160]
+except Exception as e:
+    out["did_profile_status"] = "EXC:" + type(e).__name__
+
+# 6. candidatos: algum desses handles resolve?
+CAND = [h for h in os.environ.get("HANDLE_CANDIDATOS", "").split(",") if h.strip()]
+if CAND:
+    res = {}
+    for h in CAND:
+        try:
+            g = requests.get(f"{PUBLIC}/xrpc/com.atproto.identity.resolveHandle",
+                             params={"handle": h.strip()}, timeout=15)
+            res[h] = {"status": g.status_code,
+                      "did": (g.json().get("did") if g.status_code == 200 else None)}
+        except Exception as e:
+            res[h] = {"status": "EXC:" + type(e).__name__}
+    out["candidatos"] = res
+
 Path("data").mkdir(exist_ok=True)
 Path("data/auth_diag.json").write_text(json.dumps(out, indent=2, ensure_ascii=False))
 # o conteúdo vai para o log, mas sem a senha
