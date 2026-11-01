@@ -30,6 +30,28 @@ class ATProtoError(Exception):
     pass
 
 
+class AuthError(ATProtoError):
+    """Credencial rejeitada pelo PDS (401/403).
+
+    É um erro PERMANENTE: repetir a tentativa não muda o resultado. A correção
+    é humana — gerar nova App Password em Settings → App Passwords.
+    """
+
+    def __init__(self, handle: str, status: int, body: str = ""):
+        self.handle = handle
+        self.status = status
+        msg = (
+            f"credencial rejeitada pelo PDS ({status}) para @{handle}. "
+            "A App Password salva no secret BSKY_APP_PASSWORD está revogada, "
+            "expirada ou o handle está incorreto. "
+            "Gere uma nova em Settings → Privacy and Security → App Passwords "
+            "e atualize o secret do repositório."
+        )
+        if body:
+            msg += f" | resposta: {body[:120]}"
+        super().__init__(msg)
+
+
 @dataclass
 class PostRef:
     uri: str
@@ -63,6 +85,8 @@ class Bsky:
             json={"identifier": self.handle, "password": self.app_password},
             timeout=30,
         )
+        if r.status_code in (401, 403):
+            raise AuthError(self.handle, r.status_code, r.text)
         if r.status_code >= 400:
             raise ATProtoError(f"login failed {r.status_code}: {r.text[:300]}")
         d = r.json()
