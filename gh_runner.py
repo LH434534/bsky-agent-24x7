@@ -106,7 +106,7 @@ def main() -> int:
             autofix.run()
 
     from core.beacon import Beacon
-    from core.atproto import Bsky
+    from core.atproto import Bsky, AuthError
     from core.brain import Brain
     from core.antispam import SpamGuard, Limits
     from core.memory import Memory
@@ -121,7 +121,22 @@ def main() -> int:
     bsky = Bsky(handle, apppw,
                 pds=os.environ.get("BSKY_PDS", "https://bsky.social"),
                 session_file=str(DATA / "session.json"))
-    bsky.login()
+    try:
+        bsky.login()
+    except AuthError as e:
+        # 401/403 é permanente: o auto-reparo só queimaria o job inteiro.
+        log("")
+        log("=" * 66)
+        log("CREDENCIAL INVÁLIDA — o agente não vai conseguir postar.")
+        log(str(e))
+        log("")
+        log("Como corrigir:")
+        log("  1. Entre em bsky.app com a conta do bot")
+        log("  2. Settings → Privacy and Security → App Passwords")
+        log("  3. Gere uma nova senha de app")
+        log("  4. No GitHub: Settings → Secrets → BSKY_APP_PASSWORD")
+        log("=" * 66)
+        return 3
     log(f"logado como @{bsky.handle} ({bsky.did})")
 
     from core.adaptive import Adaptive
@@ -289,6 +304,12 @@ if __name__ == "__main__":
     while True:
         try:
             sys.exit(main())
+        except SystemExit as e:
+            # main() encerrou de forma deliberada (sucesso ou falha tratada).
+            # Sem esta cláusula, SystemExit seria capturado por BaseException
+            # abaixo e o "auto-reparo" reiniciaria o agente mesmo no caminho
+            # de sucesso — inclusive com credencial inválida (exit 3).
+            raise
         except KeyboardInterrupt:
             sys.exit(130)
         except BaseException:
