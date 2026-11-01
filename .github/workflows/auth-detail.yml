@@ -30,6 +30,13 @@ jobs:
           BSKY_PDS:          https://bsky.social
         run: python scripts/auth_detail.py
 
+      - name: checar se o bot publicou
+        env:
+          BSKY_HANDLE:       ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+          BSKY_PDS:          https://bsky.social
+        run: python scripts/verify_post.py
+
       - name: publicar no branch authdiag
         run: |
           git config user.email "bot@users.noreply.github.com"
