@@ -1,0 +1,40 @@
+name: auth-detail
+
+# Diagnóstico único: escreve data/auth_diag.json e faz push no branch 'authdiag'.
+# Serve para inspecionar o resultado sem depender de baixar logs (bloqueado).
+# NÃO publica nada no Bluesky e NÃO grava a App Password.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  detail:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install requests
+
+      - name: gerar diagnostico
+        env:
+          BSKY_HANDLE:       ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+          BSKY_PDS:          https://bsky.social
+        run: python scripts/auth_detail.py
+
+      - name: publicar no branch authdiag
+        run: |
+          git config user.email "bot@users.noreply.github.com"
+          git config user.name  "auth-detail"
+          git checkout -B authdiag
+          git add -f data/auth_diag.json
+          git commit -q -m "diag: auth_diag.json $(date -u +%Y-%m-%dT%H:%MZ)" || echo "sem mudanca"
+          git push --force origin authdiag
