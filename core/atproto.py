@@ -85,8 +85,22 @@ class Bsky:
             json={"identifier": self.handle, "password": self.app_password},
             timeout=30,
         )
-        if r.status_code in (401, 403):
+        if r.status_code == 401:
             raise AuthError(self.handle, r.status_code, r.text)
+        if r.status_code == 403:
+            # 403 pode ser o PDS (auth/rate limit) OU um proxy/policy de rede
+            # ("policy_default_denied"). So e credencial se o corpo for JSON
+            # ATProto com um campo 'error' conhecido; caso contrario e rede.
+            try:
+                err = (r.json() or {}).get("error", "")
+            except Exception:
+                err = ""
+            if err in ("AuthenticationRequired", "InvalidToken", "ExpiredToken",
+                       "AccountDeactivated", "AccountTakedown"):
+                raise AuthError(self.handle, r.status_code, r.text)
+            raise ATProtoError(
+                f"acesso negado {r.status_code} (possivel bloqueio de rede/proxy, "
+                f"nao credencial): {r.text[:200]}")
         if r.status_code >= 400:
             raise ATProtoError(f"login failed {r.status_code}: {r.text[:300]}")
         d = r.json()
