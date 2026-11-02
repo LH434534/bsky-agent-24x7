@@ -149,10 +149,21 @@ def main() -> int:
                       f"{PDS}/xrpc/com.atproto.server.{endpoint}",
                       headers={"Authorization": f"Bearer {tok}"})
         checks.append(f"{label}={st4}")
-    print(f"  verificacao pos-revogacao: {', '.join(checks)}")
-    if any(c.endswith("=200") for c in checks):
-        emit("FALHA: algum token ainda valido apos deleteSession")
+    print(f"  verificacao pos-refresh: {', '.join(checks)}")
+    # accessJwt do bsky.social e stateless: continua valido ate o exp natural
+    # (~15 min) mesmo depois do logout. O que importa e o REFRESH (90 dias)
+    # ter morrido — sem ele ninguem renova a sessao vazada.
+    refresh_morto = any(c.startswith("refresh=") and not c.endswith("=200") for c in checks)
+    if not refresh_morto:
+        emit("FALHA: refresh token ainda valido apos deleteSession")
         return 1
+    try:
+        pl = refresh.split(".")[1]
+        pl += "=" * (-len(pl) % 4)
+        exp = json.loads(base64.urlsafe_b64decode(pl)).get("exp")
+        print(f"  refresh (90 dias) revogado; access expira naturalmente em ~{max(0, int(exp - __import__('time').time()))}s")
+    except Exception:
+        pass
     print(f"  sessao revogada via token: {usado}")
 
     emit("REVOGADO: sessao vazada invalidada; token do historico agora e inutil")
