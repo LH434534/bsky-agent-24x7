@@ -26,8 +26,8 @@ from __future__ import annotations
 import json
 import os
 import sys
-import urllib.error
 import urllib.parse
+import urllib.error
 import urllib.request
 
 API = os.environ.get("GITHUB_API", "https://api.github.com").rstrip("/")
@@ -56,9 +56,18 @@ def call(method, path, body=None):
     req.add_header("X-GitHub-Api-Version", "2022-11-28")
     if data:
         req.add_header("Content-Type", "application/json")
-    with urllib.request.urlopen(req, timeout=30) as r:
-        raw = r.read()
-        return r.status, (json.loads(raw) if raw else {})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            raw = r.read()
+            return r.status, (json.loads(raw) if raw else {})
+    except urllib.error.HTTPError as e:
+        raw = e.read()
+        try:
+            return e.code, json.loads(raw) if raw else {}
+        except Exception:
+            return e.code, {"message": raw[:200].decode("utf8", "replace")}
+    except Exception as e:
+        return 0, {"message": str(e)}
 
 
 def main() -> int:
