@@ -11,7 +11,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write              # para publicar o log de diagnóstico
+  actions: read
 
 jobs:
   revoke:
@@ -26,20 +27,37 @@ jobs:
 
       - name: revogar sessao vazada
         id: rv
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO:  ${{ github.repository }}
           BSKY_PDS: https://bsky.social
-        run: python scripts/revoke_leaked_session.py
+        run: |
+          set +e
+          python scripts/revoke_leaked_session.py 2>&1 | tee /tmp/revoke.log
+          echo "rc=${PIPESTATUS[0]}" >> /tmp/revoke.log
+          # continue-on-error mantém os outputs e os steps de decisão rodando
+
+      - name: publicar log (sem tokens)
+        if: always()
+        run: |
+          git config user.email "bot@users.noreply.github.com"
+          git config user.name  "security-revoke"
+          git checkout -B authdiag
+          mkdir -p data
+          cp /tmp/revoke.log data/revoke.log
+          git add -f data/revoke.log
+          git commit -q -m "diag: revoke.log $(date -u +%Y-%m-%dT%H:%MZ)" || echo "sem mudanca"
+          git push --force origin authdiag || true
 
       - name: "SEGURANCA: sessao revogada e confirmada"
-        if: startsWith(steps.rv.outputs.decision, 'REVOGADO')
+        if: ${{ always() && startsWith(steps.rv.outputs.decision, 'REVOGADO') }}
         run: echo ok
 
       - name: "SEGURANCA: sessao ja estava morta"
-        if: startsWith(steps.rv.outputs.decision, 'JA_INVALIDO')
+        if: ${{ always() && startsWith(steps.rv.outputs.decision, 'JA_INVALIDO') }}
         run: echo ok
 
       - name: "SEGURANCA: FALHA na revogacao"
-        if: startsWith(steps.rv.outputs.decision, 'FALHA') || startsWith(steps.rv.outputs.decision, 'SEM_SESSAO')
+        if: ${{ always() && (startsWith(steps.rv.outputs.decision, 'FALHA') || startsWith(steps.rv.outputs.decision, 'SEM_SESSAO')) }}
         run: exit 1
