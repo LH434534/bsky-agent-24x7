@@ -1,29 +1,60 @@
 # Rodando 24 h por dia — opções
 
-## Situação atual (GitHub Actions)
+## Arquitetura atual — 4 camadas (implementada)
 
-O workflow `bsky-bot-24x7.yml` roda sessões de 330 min em 4 horários
-(00:07, 06:07, 12:07, 18:07 UTC). Isso dá **22 h/dia**, não 24 h: sobram
-~30 min entre sessões, mais o atraso natural do scheduler do GitHub, mais o
-tempo morto se um job cair no meio.
+```
+1ª  CADEIA (primária)      cada sessão, ao terminar, dispara a próxima
+                           via workflow_dispatch. Não usa cron nenhum.
+                           scripts/chain.py no step final do job principal.
+2ª  WATCHDOG ×2             checagem a cada ~7 min (crons 0,15,30,45 e
+                           7,22,37,52). Dispara só se não houver run
+                           in_progress/queued. Cobre: queda no meio do job,
+                           timeout duro de 350 min, falha do step final.
+3ª  CRON RE-ARMADOR         1x/dia às 00:07 UTC. Só para rearmar se as duas
+                           camadas acima falharem ao mesmo tempo.
+4ª  CRON EXTERNO (opcional) cron-job.org / Better Stack / Cloudflare
+                           Workers chamando a API de dispatch de FORA —
+                           não sofre o atraso do scheduler do GitHub.
+```
 
-O `watchdog.yml` (a cada 15 min) cobre esses buracos: se não houver nenhum
-run `in_progress` ou `queued`, ele dispara uma nova sessão. Cobertura prática
-≈ 99%, sem custo (repo público).
+**Por que a cadeia resolve os 24 h de verdade:** o job dura 330 min e o
+limite do Actions é 360 min. Antes, 4 crons/dia deixavam ~30 min de buraco
+entre sessões, mais o atraso do scheduler, mais tempo morto quando um job
+caía. Com a cadeia, o `if: always()` do step final inicia a próxima sessão
+assim que a atual termina — inclusive quando o agente falha.
+
+**Kill switch:** variável de repositório `BOT_CHAIN`.
+`1` = cadeia ativa (padrão) · `0` = para de renovar (os watchdogs ainda
+podem disparar; para parar tudo, desative também os workflows watchdog).
+
+**Guardrails da cadeia** (testados em `test_chain.py`, 11/11):
+- exclui o **próprio run** da checagem de "já tem sessão ativa" (senão nunca
+  dispararia, pois ele ainda está `in_progress` quando o step final roda);
+- falha em < 120 s **não** renova — evita storm; delega ao watchdog;
+- cancelamento manual interrompe a cadeia;
+- consulta `in_progress` **e** `queued` antes de disparar;
+- `concurrency` no job principal impede bots duplicados.
+
+**Prova real:** `chain-probe` encadeou 4 gerações (0→1→2→3), 3 disparos
+automáticos e parada limpa, em ~57 s, todos `success`.
+
+**Limitação honesta:** se o job for morto pelo `timeout-minutes: 350`, o
+runner não executa steps pendentes — a cadeia não roda. É exatamente esse o
+caso coberto pelos watchdogs (até ~7 min de janela).
 
 ## Quando o Actions não basta
 
 | Opção | Cobertura | Esforço | Observação |
 |---|---|---|---|
-| **Actions + watchdog** (atual) | ≈ 99% | zero | job máximo 6 h, scheduler pode atrasar |
+| **Cadeia + 2 watchdogs** (atual) | ≈ 99,9% | zero | job máximo 6 h, coberto pela cadeia |
 | **+ cron externo** (`cron-externo.md`) | ≈ 99,9% | 5 min | cobre falha do próprio scheduler do GitHub |
 | **Container self-hosted** (`docker-compose.yml`) | 100% | 10 min | precisa de um host sempre ligado |
 | **systemd em VPS** (`bsky-bot.service`) | 100% | 20 min | reinicia no boot, sem Docker |
 | Fly.io / Railway / Render | 100% | conta + cartão | precisa de credenciais suas |
 | Celular com Termux | razoável | alto | bateria/rede, não recomendado |
 
-**Recomendação prática:** mantenha Actions + watchdog e adicione **um** cron
-externo gratuito. É a combinação com melhor custo/benefício. Se você já tem
+**Recomendação prática:** a cadeia já está ativa; adicione **um** cron
+externo gratuito para cobrir falha do próprio scheduler do GitHub. É a combinação com melhor custo/benefício. Se você já tem
 um VPS ou Raspberry Pi ligado 24 h, rode o container lá e use o Actions como
 fallback — as duas camadas usam o mesmo `data/`, então o estado precisa ser
 compartilhado (ex.: branch `state` ou volume sincronizado).
