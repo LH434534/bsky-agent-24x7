@@ -1,0 +1,21 @@
+[Unit]
+Description=Bluesky agent (loop 24/7)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bskybot
+WorkingDirectory=/opt/bsky-agent
+EnvironmentFile=/opt/bsky-agent/.env
+ExecStart=/opt/bsky-agent/.venv/bin/python main.py run
+Restart=always
+RestartSec=15
+# não deixa um crash-loop derrubar a máquina
+StartLimitIntervalSec=300
+StartLimitBurst=10
+StandardOutput=append:/var/log/bsky-bot.log
+StandardError=append:/var/log/bsky-bot.log
+
+[Install]
+WantedBy=multi-user.target
