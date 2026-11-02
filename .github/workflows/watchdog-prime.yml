@@ -1,0 +1,58 @@
+name: watchdog-prime
+
+# Segundo supervisor, com cron DESENCONTRADO do watchdog-24x7.
+#
+# watchdog-24x7  → minutos 0,15,30,45
+# watchdog-prime → minutos 7,22,37,52
+#
+# Por que dois: sob carga o scheduler do GitHub atrasa ou pula disparos.
+# Dois agendamentos em minutos diferentes (e primos entre si na prática)
+# reduzem a chance de ambos falharem na mesma janela. Juntos dão uma
+# checagem a cada ~7 min. Ambos usam o MESMO scripts/watchdog.py, que
+# nunca cria sessão duplicada (consulta in_progress + queued).
+#
+# Custo somado: ~192 checagens/dia de ~20 s. Repo público = gratuito.
+
+on:
+  schedule:
+    - cron: "7/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: watchdog-prime
+  cancel-in-progress: true
+
+jobs:
+  supervise:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: garantir sessão ativa
+        id: wd
+        env:
+          GH_TOKEN:      ${{ github.token }}
+          GH_REPO:       ${{ github.repository }}
+          WORKFLOW_FILE: bsky-bot-24x7.yml
+        run: python scripts/watchdog.py
+
+      - name: "DECISAO: ja havia sessao ativa"
+        if: startsWith(steps.wd.outputs.decision, 'ATIVO')
+        run: echo ok
+
+      - name: "DECISAO: nova sessao disparada"
+        if: startsWith(steps.wd.outputs.decision, 'DISPARADO')
+        run: echo ok
+
+      - name: "DECISAO: ERRO no supervisor"
+        if: startsWith(steps.wd.outputs.decision, 'ERRO')
+        run: exit 1
