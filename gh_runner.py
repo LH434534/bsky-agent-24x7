@@ -54,14 +54,17 @@ def commit_state(tag: str) -> bool:
     """Commita o estado de volta no repo. Falha silenciosa — o bot vem primeiro."""
     sh("git", "config", "user.email", "bot@users.noreply.github.com")
     sh("git", "config", "user.name", "bsky-bot")
-    keep = ["memory.db", "corpus.txt", "spam_state.json", "session.json",
+    # session.json contem accessJwt/refreshJwt. NUNCA vai para o git:
+    # o branch 'state' e publico e ja vazou uma sessao valida por isso.
+    # Cada run faz login fresco com a App Password (secret), sem custo real.
+    keep = ["memory.db", "corpus.txt", "spam_state.json",
             "autofix_state.json", "last_run.log", "agent.log", "agency_state.json",
             "social_state.json"]
     for p in keep:
         f = DATA / p
         if f.exists():
-            sh("git", "add", "-f", str(f))
-    sh("git", "add", "-f", "data/seed_corpus.txt")
+            sh("git", "add", str(f))
+    sh("git", "add", "data/seed_corpus.txt")
     rc, out = sh("git", "status", "--porcelain")
     log(f"git status rc={rc} -> {out.strip()[:200] or '(vazio)'}")
     if not out.strip():
@@ -92,7 +95,7 @@ def commit_state(tag: str) -> bool:
 def main() -> int:
     log(f"runner start — {RUN_MINUTES:.0f} min, deadline {time.strftime('%H:%MZ', time.gmtime(DEADLINE))}")
     log(f"cwd={ROOT} py={sys.version.split()[0]}")
-    log(f"RunnerGH v5 (autônomo) — módulos: agency/autonomy/persona")
+    log("RunnerGH v5 (autônomo) — módulos: agency/autonomy/persona")
     log(f"data/: {sorted(p.name for p in DATA.glob('*')) if DATA.exists() else 'vazio'}")
     log(f"env handle={'ok' if os.environ.get('BSKY_HANDLE') else 'FALTANDO'} "
         f"pw={'ok' if os.environ.get('BSKY_APP_PASSWORD') else 'FALTANDO'}")
@@ -304,7 +307,7 @@ if __name__ == "__main__":
     while True:
         try:
             sys.exit(main())
-        except SystemExit as e:
+        except SystemExit:
             # main() encerrou de forma deliberada (sucesso ou falha tratada).
             # Sem esta cláusula, SystemExit seria capturado por BaseException
             # abaixo e o "auto-reparo" reiniciaria o agente mesmo no caminho
