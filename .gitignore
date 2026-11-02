@@ -5,3 +5,6 @@ venv/
 .venv/
 .env
 data/*.log.bak
+
+# sessao ATProto (accessJwt/refreshJwt) — segredo, nunca versionar
+data/session.json
