@@ -9,8 +9,11 @@ services:
     environment:
       TZ_OFFSET: "-3"
       BSKY_PDS: "https://bsky.social"
-      # Sem Ollama: o Brain cai automaticamente para o modo offline local
-      OLLAMA_HOST: "http://ollama:11434"
+      # Nao ha servico 'ollama' neste compose. O Brain.available() usa
+      # timeout=3 e cai sozinho para o gerador offline local. Manter um
+      # hostname inexistente so atrasava 3s a cada verificacao.
+      # Para usar Ollama, adicione o servico e mude para o nome dele.
+      OLLAMA_HOST: "http://127.0.0.1:11434"
     volumes:
       - ./state:/app/data
     logging:
