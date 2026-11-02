@@ -181,7 +181,7 @@ class Conductor:
         if n >= 25 and taxa > 0.90 and erros == 0:
             return "ativo", f"taxa {taxa:.2f}, {n} ações, sem erros"
         # ficou muito tempo sem fazer nada de útil?
-        if parado > 180 and n > 0 and self.posture != "silencioso":
+        if parado > 180 and self.v.ultima_acao and self.posture != "silencioso":
             return "silencioso", f"{parado:.0f} min sem ação útil — melhor descansar"
         if div <= 2 and n > 20:
             return "cauteloso", f"preso em {div} tipo de ação — sem variedade"
