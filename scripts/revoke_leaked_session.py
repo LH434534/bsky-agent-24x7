@@ -119,21 +119,41 @@ def main() -> int:
             emit("JA_INVALIDO: refresh tambem rejeitado — sessao ja morta")
             return 0
 
-    # 3. revoga
-    st3, _ = http("POST", f"{PDS}/xrpc/com.atproto.server.deleteSession",
-                  headers={"Authorization": f"Bearer {access}"})
-    print(f"  deleteSession -> HTTP {st3}")
+    # 3. revoga. O lexicon exige o REFRESH jwt como Bearer, nao o access:
+    #    e assim que o SDK oficial (@atproto/lex-password-session) faz logout.
+    #    Com access o PDS devolvia 400 — foi o erro da primeira tentativa.
+    candidatos = [("refresh", refresh), ("access", access)]
+    st3, body3 = -1, {}
+    usado = ""
+    for label, tok in candidatos:
+        if not tok:
+            continue
+        st3, body3 = http("POST", f"{PDS}/xrpc/com.atproto.server.deleteSession",
+                          headers={"Authorization": f"Bearer {tok}"})
+        print(f"  deleteSession via {label} -> HTTP {st3}")
+        if st3 in (200, 204):
+            usado = label
+            break
     if st3 not in (200, 204):
-        emit(f"FALHA: deleteSession devolveu HTTP {st3}")
+        erro = json.dumps(body3, ensure_ascii=False)[:160]
+        emit(f"FALHA: deleteSession devolveu HTTP {st3} | {erro}")
         return 1
 
-    # 4. confirma que o token morreu de verdade
-    st4, _ = http("GET", f"{PDS}/xrpc/com.atproto.server.getSession",
-                  headers={"Authorization": f"Bearer {access}"})
-    print(f"  getSession APOS revogacao -> HTTP {st4}")
-    if st4 == 200:
-        emit("FALHA: token ainda valido apos deleteSession")
+    # 4. confirma que a sessao morreu de verdade (access e refresh)
+    checks = []
+    for label, tok in candidatos:
+        if not tok:
+            continue
+        endpoint = ("refreshSession" if label == "refresh" else "getSession")
+        st4, _ = http("POST" if label == "refresh" else "GET",
+                      f"{PDS}/xrpc/com.atproto.server.{endpoint}",
+                      headers={"Authorization": f"Bearer {tok}"})
+        checks.append(f"{label}={st4}")
+    print(f"  verificacao pos-revogacao: {', '.join(checks)}")
+    if any(c.endswith("=200") for c in checks):
+        emit("FALHA: algum token ainda valido apos deleteSession")
         return 1
+    print(f"  sessao revogada via token: {usado}")
 
     emit("REVOGADO: sessao vazada invalidada; token do historico agora e inutil")
     return 0
