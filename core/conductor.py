@@ -83,7 +83,13 @@ class Vitals:
         return len(set(k for _, k, _ in self.acoes))
 
     def minutos_parado(self) -> float:
-        return (time.time() - self.ultima_acao) / 60 if self.ultima_acao else 999.0
+        # Deadlock histórico: sem nenhuma ação registrada isto devolvia 999,
+        # o assess() interpretava como "999 min parado" e mandava descansar,
+        # o que zerava a frequência e impedia a PRIMEIRA ação de acontecer.
+        # Nunca ter agido é início de vida, não inatividade.
+        if not self.ultima_acao:
+            return 0.0
+        return (time.time() - self.ultima_acao) / 60
 
 
 # Posturas que o maestro pode adotar
@@ -175,7 +181,7 @@ class Conductor:
         if n >= 25 and taxa > 0.90 and erros == 0:
             return "ativo", f"taxa {taxa:.2f}, {n} ações, sem erros"
         # ficou muito tempo sem fazer nada de útil?
-        if parado > 180 and self.posture != "silencioso":
+        if parado > 180 and n > 0 and self.posture != "silencioso":
             return "silencioso", f"{parado:.0f} min sem ação útil — melhor descansar"
         if div <= 2 and n > 20:
             return "cauteloso", f"preso em {div} tipo de ação — sem variedade"
@@ -192,6 +198,11 @@ class Conductor:
         if p == "silencioso":
             # silêncio de 40 min a 3 h — decisão, não falha
             self.silent_until = time.time() + random.uniform(2400, 10800)
+        elif old == "silencioso":
+            # AO SAIR do silêncio, libera imediatamente. Sem isto o
+            # should_act() continuava vetando ações por até 3 h mesmo com
+            # postura "normal" — o bot parecia vivo, mas não postava nada.
+            self.silent_until = 0.0
         self.save()
 
     @property
