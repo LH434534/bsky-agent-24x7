@@ -1,0 +1,56 @@
+name: watchdog-24x7
+
+# Supervisor de cobertura. Roda a cada 15 min e só age se NÃO houver
+# nenhuma sessão do bot em andamento/enfileirada.
+#
+# Por que existe:
+#   • o schedule do GitHub Actions atrasa (ou nem dispara) sob carga;
+#   • o job principal dura 330 min e o cron tem só 4 horários/dia;
+#   • um job que cai no meio não era reiniciado até o próximo cron.
+#
+# Custo: ~96 execuções/dia de ~20 s cada. Repositório público = gratuito.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:            # para testar / forçar checagem
+
+permissions:
+  actions: write                # necessário para workflow_dispatch
+  contents: read
+
+concurrency:
+  group: watchdog-24x7
+  cancel-in-progress: true      # checagens sobrepostas não ajudam
+
+jobs:
+  supervise:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: garantir sessão ativa
+        id: wd
+        env:
+          GH_TOKEN:      ${{ github.token }}
+          GH_REPO:       ${{ github.repository }}
+          WORKFLOW_FILE: bsky-bot-24x7.yml
+        run: python scripts/watchdog.py
+
+      # Steps nomeados: o resultado fica legível pela API de jobs, sem logs.
+      - name: "DECISAO: ja havia sessao ativa"
+        if: startsWith(steps.wd.outputs.decision, 'ATIVO')
+        run: echo "ok"
+
+      - name: "DECISAO: nova sessao disparada"
+        if: startsWith(steps.wd.outputs.decision, 'DISPARADO')
+        run: echo "ok"
+
+      - name: "DECISAO: ERRO no supervisor"
+        if: startsWith(steps.wd.outputs.decision, 'ERRO')
+        run: exit 1
