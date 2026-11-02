@@ -33,7 +33,12 @@ else:
                 "uri": p.get("uri"),
             })
         out["posts"] = posts
-        out["autor_handle"] = f.json().get("feed", [{}])[0].get("post", {}).get("author", {}).get("handle")
+        # feed vazio e legitimo (conta nova / sem posts): [{}] como default
+        # NAO protege, porque .get("feed") devolve [] e [0] estoura.
+        itens = f.json().get("feed") or []
+        out["autor_handle"] = (itens[0].get("post", {}).get("author", {}).get("handle")
+                               if itens else None)
+        out["total_posts_no_feed"] = len(itens)
 
 Path("data").mkdir(exist_ok=True)
 Path("data/post_check.json").write_text(json.dumps(out, indent=2, ensure_ascii=False))
