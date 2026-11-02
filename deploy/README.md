@@ -102,6 +102,29 @@ pm2 save && pm2 startup
 pm2 logs bsky-agent
 ```
 
+## Segurança — incidente corrigido (2026-11-03)
+
+`data/session.json` continha `accessJwt`/`refreshJwt` e estava legível
+**anonimamente** no branch público `state` (HTTP 200 sem token). Com esses
+tokens qualquer pessoa podia postar como o bot.
+
+Correções aplicadas:
+- `data/session.json` no `.gitignore`
+- `gh_runner.py` não inclui mais o arquivo no `keep` e não usa `git add -f`
+- step `persist state` passou a usar `git add data/` (respeita `.gitignore`)
+- sessão vazada **revogada** via `com.atproto.server.deleteSession` com o
+  `refreshJwt` (workflow `security-revoke.yml`); verificado: refresh → 400
+- arquivo removido do HEAD do branch `state` (leitura anônima agora 404)
+- o bot passa a fazer login fresco com a App Password a cada sessão
+
+O **histórico** do branch ainda contém o token, mas ele é inútil: o refresh
+foi revogado e o `accessJwt` do bsky.social é stateless e expira em ~15 min.
+Reescrever o histórico é destrutivo e não foi feito.
+
+Ao self-hostar, **não commite** `data/` e mantenha `.env` fora do git.
+O unit `deploy/bsky-agent.service` roda como `root` — prefira
+`deploy/bsky-bot.service` (usuário dedicado `bskybot`).
+
 ## Verificação (qualquer opção)
 
 ```bash
