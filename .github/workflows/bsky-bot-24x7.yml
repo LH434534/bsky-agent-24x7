@@ -2,9 +2,12 @@ name: bsky-bot-24x7
 
 on:
   schedule:
-    # Quatro sessões de 5h30 por dia. O job já fica vivo; a cada 30 min
-    # criaria uma fila de execuções, pois o limite de um job é 6h.
-    - cron: "7 0,6,12,18 * * *"
+    # RE-ARMADOR DIÁRIO (1x/dia), não o mecanismo principal.
+    # A cobertura 24h agora vem da CADEIA: cada sessão dispara a próxima ao
+    # terminar (step "renovar sessao"). Os 4 crons antigos foram reduzidos a 1
+    # para não empilhar runs na fila do `concurrency` quando a cadeia e o
+    # cron caírem na mesma janela. Se TUDO mais falhar, este ainda rearma.
+    - cron: "7 0 * * *"
   workflow_dispatch:            # disparo manual pelo botão ou pela API
     inputs:
       force_actions:
