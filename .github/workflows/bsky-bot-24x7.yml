@@ -35,8 +35,12 @@ jobs:
     timeout-minutes: 350          # teto do Actions é 360
     permissions:
       contents: write             # necessário para commitar o estado
+      actions: write              # necessário para renovar a própria sessão
 
     steps:
+      - name: registrar inicio
+        run: echo "CHAIN_START_TS=$(date +%s)" >> "$GITHUB_ENV"
+
       - name: checkout
         uses: actions/checkout@v4
         with:
@@ -116,3 +120,42 @@ jobs:
               sleep $((i*5))
             done
           fi
+
+      # ── 24 h de verdade ──────────────────────────────────────────────
+      # Cada sessão, AO TERMINAR, dispara a próxima. Não depende do cron do
+      # GitHub (que atrasa/não dispara), não deixa os ~30 min de buraco entre
+      # jobs de 330 min e recupera sozinha se o agente cair no meio.
+      # O watchdog (15 min) e o cron original ficam como 2ª e 3ª camadas.
+      - name: renovar sessao (24h)
+        id: chain
+        if: always()
+        env:
+          GH_TOKEN:          ${{ github.token }}
+          GH_REPO:           ${{ github.repository }}
+          CHAIN_JOB_STATUS:  ${{ job.status }}
+          CHAIN_ENABLED:     ${{ vars.BOT_CHAIN || '1' }}
+        run: python scripts/chain.py --workflow bsky-bot-24x7.yml
+
+      - name: "CADEIA: proxima sessao iniciada"
+        if: ${{ always() && startsWith(steps.chain.outputs.decision, 'DISPARADO') }}
+        run: echo "ok"
+
+      - name: "CADEIA: ja havia sessao ativa"
+        if: ${{ always() && startsWith(steps.chain.outputs.decision, 'ATIVO') }}
+        run: echo "ok"
+
+      - name: "CADEIA: aguardando watchdog (falha rapida)"
+        if: ${{ always() && startsWith(steps.chain.outputs.decision, 'AGUARDANDO') }}
+        run: echo "ok"
+
+      - name: "CADEIA: desligada pelo kill switch"
+        if: ${{ always() && startsWith(steps.chain.outputs.decision, 'DESLIGADO') }}
+        run: echo "ok"
+
+      - name: "CADEIA: interrompida por cancelamento"
+        if: ${{ always() && startsWith(steps.chain.outputs.decision, 'CANCELADO') }}
+        run: echo "ok"
+
+      - name: "CADEIA: ERRO"
+        if: ${{ always() && startsWith(steps.chain.outputs.decision, 'ERRO') }}
+        run: exit 1
