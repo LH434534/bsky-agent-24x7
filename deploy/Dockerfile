@@ -20,8 +20,11 @@ COPY scripts/ ./scripts/
 # Estado sobrevive ao recreate do container
 VOLUME ["/app/data"]
 
+# alive() espera um PID (int) e age() espera um NOME (str).
+# A versao anterior passava read() (dict) para os dois -> TypeError sempre,
+# marcando o container unhealthy mesmo com o bot rodando.
 HEALTHCHECK --interval=60s --timeout=10s --start-period=180s --retries=5 \
-  CMD curl -fsS http://127.0.0.1:8080/health || python3 -c \
-      "from core.beacon import read, age, alive; import sys; sys.exit(0 if alive(read('worker')) and age(read('worker'))<300 else 1)"
+  CMD python3 -c \
+      "from core.beacon import age, alive, pid_of; import sys; sys.exit(0 if alive(pid_of('worker')) and age('worker')<300 else 1)"
 
 CMD ["python3", "main.py", "run"]
