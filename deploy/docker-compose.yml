@@ -1,0 +1,22 @@
+services:
+  bsky-bot:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: bsky-bot
+    restart: unless-stopped          # reinicia após queda, reboot do host, OOM
+    env_file: .env                   # BSKY_HANDLE / BSKY_APP_PASSWORD
+    environment:
+      TZ_OFFSET: "-3"
+      BSKY_PDS: "https://bsky.social"
+      # Sem Ollama: o Brain cai automaticamente para o modo offline local
+      OLLAMA_HOST: "http://ollama:11434"
+    volumes:
+      - ./state:/app/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+    mem_limit: 1g
+    # não expõe porta: o bot só faz conexões de saída
