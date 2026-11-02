@@ -42,6 +42,6 @@ jobs:
           git config user.email "bot@users.noreply.github.com"
           git config user.name  "auth-detail"
           git checkout -B authdiag
-          git add -f data/auth_diag.json
+          git add -f data/auth_diag.json data/post_check.json 2>/dev/null || git add -f data/auth_diag.json
           git commit -q -m "diag: auth_diag.json $(date -u +%Y-%m-%dT%H:%MZ)" || echo "sem mudanca"
           git push --force origin authdiag
