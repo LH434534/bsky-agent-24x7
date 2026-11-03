@@ -58,6 +58,14 @@ def _try(mod: str, attr: str):
 
 fix_text = _try("ftfy", "fix_text")
 detect_langs = _try("langdetect", "detect_langs")
+# langdetect é ESTOCÁSTICO por design (amostragem de n-gramas). Sem seed
+# fixo, o mesmo texto curto oscilava entre pt-BR e sv em ~90/10 das chamadas
+# — flakiness real nos testes e `langs` incoerente em produção.
+try:
+    from langdetect import DetectorFactory as _DetectorFactory  # type: ignore
+    _DetectorFactory.seed = 0
+except Exception:
+    pass
 SentimentIntensityAnalyzer = _try("vaderSentiment.vaderSentiment", "SentimentIntensityAnalyzer")
 retry = _try("tenacity", "retry")
 stop_after_attempt = _try("tenacity", "stop_after_attempt")
@@ -114,6 +122,10 @@ def clean_text(text: str) -> str:
 def detect_language(text: str) -> str:
     """Devolve 'pt-BR', 'en', 'es'... ou 'pt-BR' se indeterminado."""
     if not text or not text.strip():
+        return "pt-BR"
+    # Textos de 1-2 palavras (ex.: "Bom,!.") não têm sinal estatístico:
+    # langdetect devolvia `sv` com 0.99 de "confiança". Não confiar.
+    if len(re.findall(r"[\wÀ-ÿ]+", text)) < 3:
         return "pt-BR"
     if detect_langs:
         try:
@@ -176,13 +188,34 @@ def prepare_post(text: str, langs: Optional[List[str]] = None) -> Tuple[str, Lis
         except Exception:
             cap = None
         final, hm = apply_human(clean, cap)
+        # GUARDA ANTI-DEGENERAÇÃO: um texto que era só clichê de IA podia
+        # virar "Bom,!." (6 chars, zero conteúdo) depois das edições. Isso
+        # chegaria ao post e ao langdetect. Se as edições removeram quase
+        # todas as palavras, DESCARTAMOS e mantemos o texto limpo original,
+        # sinalizando regeneração. Melhor publicar algo imperfeito do que
+        # publicar pontuação.
+        palavras_antes = re.findall(r"[\wÀ-ÿ]+", clean)
+        palavras_depois = re.findall(r"[\wÀ-ÿ]+", final)
+        # 3 sinais de degeneração: quase sem palavras; perda de >40% do
+        # conteúdo; ou resíduo de pontuação/marcador no início ("Bom,!. ...").
+        perda = (1 - len(palavras_depois) / len(palavras_antes)) if palavras_antes else 0.0
+        comeco_quebrado = bool(re.match(r"^[\W_]{0,12}[,.;:!?]", final))
+        degenerou = (len(palavras_depois) < 2 or perda > 0.40 or comeco_quebrado)
+        if degenerou:
+            log.warning("edições humanas removeram quase todo o conteúdo — revertidas")
+            final = clean
+            palavras_depois = re.findall(r"[\wÀ-ÿ]+", final)
+            hm["recomenda_regenerar"] = True
         human_meta = {
             "ativo": True,
             "perfil": hm["id"],
             "edits": hm["edits"],
+            "edits_revertidas": degenerou,
             "ai_tells_removidos": hm["ai_tells_antes"] - hm["ai_tells_depois"],
             "score_antes": human_likeness_score(clean),
             "score_depois": human_likeness_score(final),
+            "palavras_antes": len(palavras_antes),
+            "palavras_depois": len(palavras_depois),
             "recomenda_regenerar": hm.get("recomenda_regenerar", False),
         }
         if human_meta["recomenda_regenerar"]:

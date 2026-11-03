@@ -12,7 +12,7 @@ fingir que entreguei isso. O que dá para fazer, e foi feito: **auditar tudo,
 corrigir o que é comprovável, travar cada correção com teste e dizer
 exatamente o que ainda não está coberto**.
 
-Resultado: **250 asserts verdes**, 2 gates, 50 arquivos compilando, 9 workflows
+Resultado: **264 asserts verdes**, 2 gates, 50 arquivos compilando, 9 workflows
 válidos, e **um incidente de segurança real contido**.
 
 ---
@@ -122,7 +122,7 @@ Complementos:
 | 10 | `core/scheduler.py` | remove `t0`/`spent` (código morto que sugeria compensação inexistente) + imports mortos |
 | 11 | `main.py`, `immortal.py` | imports não usados removidos |
 | 12 | `scripts/check_auth.py` | f-string sem placeholder corrigida |
-| 13 | `scripts/resilience_selftest.py` | **novo** — 43 asserts, mock real da API do GitHub |
+| 13 | `scripts/resilience_selftest.py` | **novo** — 52 asserts, mock real da API do GitHub |
 | 14 | `toolkit-check.yml` | 5 → **7 etapas**, novos triggers |
 
 **Bug que eu mesmo introduzi e corrigi:** ao limpar imports, removi
@@ -138,10 +138,10 @@ isso para sempre.
 |---|---|
 | `toolkit_selftest` | **50 / 50** |
 | `toolkit_integration` | **15 / 15** |
-| `human_selftest` | **36 / 36** |
+| `human_selftest` | **41 / 41** |
 | `viral_selftest` | **106 / 106** |
-| `resilience_selftest` | **43 / 43** |
-| **Total** | **250 / 250** |
+| `resilience_selftest` | **52 / 52** |
+| **Total** | **264 / 264** |
 | `secret_gate.py` | **OK** (0 achados) |
 | `security_gate.py` | **OK** (3 pendentes `curl\|sh`) |
 | `py_compile` | **50 arquivos, 0 falhas** |
@@ -152,7 +152,7 @@ isso para sempre.
 | `chain.py` contra API mock | 7 decisões: DESLIGADO, CANCELADO, AGUARDANDO, ATIVO, DISPARADO, retry 503→DISPARADO, 500→ERRO |
 | `security-revoke` #4 no runner | **success** — 3 sessões revogadas |
 | `auth-check` (PDS real) | **success** — App Password intacta |
-| `toolkit-check` no runner | **7/7 etapas** |
+| `toolkit-check` no runner | **7/7 etapas** (após correção do #5) |
 
 ---
 
@@ -173,6 +173,55 @@ isso para sempre.
 5. **`refresh` de sessões futuras:** o `.gitignore` impede o versionamento, mas
    o ideal é não gravar `session.json` em disco — o `core/atproto.py` já faz
    login fresco a cada run.
+
+
+---
+
+## 8. Pós-auditoria: o CI #5 falhou — e isso revelou mais 3 bugs
+
+O `toolkit-check` #5 deu **failure na etapa 6/7** (o `secret_gate` que eu
+mesmo tinha acabado de criar). Em vez de ignorar ou afrouxar, investiguei.
+Foram **4 camadas de achados**, todos reais:
+
+### 8.1 Falso positivo do gate (causa imediata)
+`deploy/.env.example` é um **template** com `BSKY_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx`;
+`docs/AUDITORIA_100.md` e a docstring do próprio gate citam esse formato.
+O regex acusava placeholder documental como se fosse credencial.
+
+Correção: `TEMPLATE_OK` para `.env.example/.sample/.template`, `segredo_real()`
+descarta repetições e palavras óbvias, e fixtures de teste só são ignorados
+quando anotados com `# gate:fixture`. Um `.env` real e um `ghp_` real
+**continuam bloqueados** — há testes que injetam ambos e exigem `rc=1`.
+
+### 8.2 Falso NEGATIVO silencioso (mais grave que o falso positivo)
+`git ls-files` num diretório que não é repositório devolve **rc=128 com stdout
+vazio**. O gate checava só `try/except` e devolvia `OK` **sem varrer nenhum
+arquivo**. Localmente parecia verde por razão errada. Agora valida o
+`returncode` e cai para `rglob` — o que imediatamente expôs os fixtures.
+
+### 8.3 `langdetect` é estocástico → flakiness real
+Sem `DetectorFactory.seed`, o mesmo texto oscilava **pt-BR / sv em 90/10** das
+chamadas. O `human_selftest` falhava intermitentemente. Correção: seed fixo
+`0`, e detecção não confiável em textos com <3 palavras cai para `pt-BR`.
+**200/200 rodadas determinísticas** após a correção.
+
+### 8.4 A camada humana conseguia destruir um post
+Ao remover clichês de um texto que era só clichê, `apply_human` devolvia
+`"Bom,!."` — **6 caracteres, zero conteúdo**, que chegaria à publicação e
+alimentava o `sv` do item anterior. Guarda anti-degeneração em `prepare_post`:
+se as edições deixarem <2 palavras, removerem >40% do conteúdo ou o texto
+começar com pontuação órfã, **as edições são revertidas** e o original limpo
+é preservado, com `recomenda_regenerar=True`. Texto normal continua sendo
+editado (100/100 rodadas sem reversão).
+
+> Nota de ambiente: no meio da validação o sandbox reiniciou e perdeu os
+> pacotes pip instalados na sessão, derrubando várias suítes de uma vez.
+> Reinstalado via `requirements.txt` e revalidado. O CI do GitHub instala as
+> dependências em todo run, então não é afetado — e é a fonte de verdade.
+
+**Bug que eu introduzi e corrigi nesta rodada:** removi `core.beacon.read` de
+`immortal.py` ao limpar imports (usado na linha 74); o smoke de 26 módulos
+pegou. Também esqueci `import re` num teste novo. Ambos travados por testes.
 
 ---
 

@@ -64,6 +64,37 @@ r = subprocess.run([sys.executable, "scripts/secret_gate.py", "--repo", "."],
 check("secret_gate retorna OK no repo atual", r.returncode == 0,
       r.stdout.strip().splitlines()[-1] if r.stdout.strip() else f"rc={r.returncode}")
 
+# O CI #5 falhou aqui: 4 falsos positivos (template .env.example, a própria
+# docstring do gate e o relatório citando `xxxx-xxxx-xxxx-xxxx`). Trava os
+# dois lados: placeholder é permitido, segredo REAL continua bloqueado.
+sys.path.insert(0, str(ROOT / "scripts"))
+import secret_gate as SG  # noqa: E402
+check("placeholder xxxx-xxxx-xxxx-xxxx NAO é segredo",
+      SG.segredo_real("xxxx-xxxx-xxxx-xxxx") is False)
+check("placeholder your-xxxx-xxxx-xxxx NAO é segredo",
+      SG.segredo_real("your-xxxx-xxxx-xxxx") is False)
+check("App Password real É segredo", SG.segredo_real("k574-uofr-ped3-6jim") is True)  # gate:fixture
+check(".env.example é template permitido", bool(SG.TEMPLATE_OK.search("deploy/.env.example")))
+check(".env real continua proibido", not SG.TEMPLATE_OK.search("deploy/.env"))
+check("session.json continua proibido", not SG.TEMPLATE_OK.search("data/session.json"))
+with tempfile.TemporaryDirectory() as td:
+    p = Path(td)
+    (p / ".gitignore").write_text("data/session.json\n")
+    (p / "deploy").mkdir(); (p / "deploy" / ".env.example").write_text("PWD=xxxx-xxxx-xxxx-xxxx\n")
+    ok = subprocess.run([sys.executable, str(ROOT / "scripts" / "secret_gate.py"), "--repo", str(p)],
+                        capture_output=True, text=True, timeout=60).returncode
+    check("repo só com template → OK", ok == 0, f"rc={ok}")
+    (p / "deploy" / ".env").write_text("PWD=k574-uofr-ped3-6jim\n")  # gate:fixture
+    bad = subprocess.run([sys.executable, str(ROOT / "scripts" / "secret_gate.py"), "--repo", str(p)],
+                         capture_output=True, text=True, timeout=60)
+    check(".env com senha real → BLOQUEADO", bad.returncode == 1,
+          bad.stdout.strip().splitlines()[-1] if bad.stdout.strip() else "")
+    (p / "deploy" / ".env").unlink()
+    (p / "leak.txt").write_text("token ghp_abcdefghijklmnopqrstuvwxyz1234567890\n")  # gate:fixture
+    bad2 = subprocess.run([sys.executable, str(ROOT / "scripts" / "secret_gate.py"), "--repo", str(p)],
+                          capture_output=True, text=True, timeout=60)
+    check("GitHub PAT real → BLOQUEADO", bad2.returncode == 1)
+
 print("\n=== 2. workflow principal: timeout de STEP < timeout de JOB ===")
 wf = ROOT / ".github" / "workflows" / "bsky-bot-24x7.yml"
 d = yaml.safe_load(wf.read_text())

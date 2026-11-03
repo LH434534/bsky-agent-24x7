@@ -33,18 +33,53 @@ PATTERNS = [
     ("private_key", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |)PRIVATE KEY-----")),
 ]
 BAD_NAMES = re.compile(r"(^|/)(session\.json|\.env(?:\..*)?|[^/]+\.jwt)$", re.I)
+# Templates versionados são o caminho SEGURO de documentar variáveis.
+# São explicitamente permitidos; o `.env` real continua proibido.
+TEMPLATE_OK = re.compile(r"(^|/)\.env\.(example|sample|template|dist)$", re.I)
+# Placeholders documentais: `xxxx-xxxx-xxxx-xxxx`, `your-...`, `<...>`.
+# Um App Password REAL tem blocos alfanuméricos variados; um placeholder é
+# repetição ou palavra óbvia. Sem este filtro o gate acusa a própria
+# documentação — exatamente o falso positivo encontrado no CI #5.
+PLACEHOLDER = re.compile(
+    r"^(?:x{4}|y{4}|a{4}|0{4}|1{4}|\*{4}|<[^>]*>|your|seu_|sua_|example|"
+    r"changeme|placeholder|dummy|teste|aaa|bbb|abcd)", re.I)
+
+
+def segredo_real(valor: str) -> bool:
+    """Descarta placeholders, mantém credenciais de verdade."""
+    blocos = valor.split("-")
+    if len(blocos) != 4:
+        return False
+    if any(PLACEHOLDER.search(b) for b in blocos):
+        return False
+    # 4 blocos iguais, ou blocos com um único caractere repetido
+    if len(set(blocos)) == 1 or any(len(set(b)) <= 1 for b in blocos):
+        return False
+    return True
+
+
+FIXTURE_TAG = "# gate:fixture"
 SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", "node_modules", ".venv", "venv"}
 SKIP_EXT = {".pyc", ".pyo", ".db", ".zip", ".gz", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".mp4"}
 MAX_BYTES = 2_000_000
 
 
 def arquivos_versionados(repo: Path) -> list[Path]:
+    """Arquivos versionados; fora de um repo git, varre o diretório.
+
+    ATENÇÃO: `git ls-files` num diretório que não é repo devolve rc=128 com
+    stdout VAZIO. Checar só `try/except` fazia o gate devolver "OK" sem
+    varrer nada — falso negativo perigoso. Valida o returncode.
+    """
     try:
-        out = subprocess.run(["git", "-C", str(repo), "ls-files"],
-                             capture_output=True, text=True, timeout=30).stdout
-        return [repo / x for x in out.splitlines() if x.strip()]
+        r = subprocess.run(["git", "-C", str(repo), "ls-files"],
+                           capture_output=True, text=True, timeout=30)
+        if r.returncode == 0 and r.stdout.strip():
+            return [repo / x for x in r.stdout.splitlines() if x.strip()]
     except Exception:
-        return [p for p in repo.rglob("*") if p.is_file() and not any(d in SKIP_DIRS for d in p.parts)]
+        pass
+    return [p for p in repo.rglob("*")
+            if p.is_file() and not any(d in SKIP_DIRS for d in p.parts)]
 
 
 def main() -> int:
@@ -59,7 +94,7 @@ def main() -> int:
         rel = str(p.relative_to(repo))
         if any(d in SKIP_DIRS for d in p.relative_to(repo).parts):
             continue
-        if BAD_NAMES.search(rel):
+        if BAD_NAMES.search(rel) and not TEMPLATE_OK.search(rel):
             achados.append({"arquivo": rel, "linha": 0, "tipo": "nome_proibido"})
         if p.suffix.lower() in SKIP_EXT or p.stat().st_size > MAX_BYTES:
             continue
@@ -68,9 +103,18 @@ def main() -> int:
         except Exception:
             continue
         for i, ln in enumerate(txt.splitlines(), 1):
+            # Suítes de teste PRECISAM conter segredos falsos para provar que
+            # o gate bloqueia. Só linhas explicitamente marcadas são ignoradas;
+            # qualquer segredo sem a marca continua sendo denunciado.
+            if FIXTURE_TAG in ln:
+                continue
             for tipo, rx in PATTERNS:
-                if rx.search(ln):
-                    achados.append({"arquivo": rel, "linha": i, "tipo": tipo})
+                m = rx.search(ln)
+                if not m:
+                    continue
+                if tipo == "bsky_app_password" and not segredo_real(m.group(0)):
+                    continue
+                achados.append({"arquivo": rel, "linha": i, "tipo": tipo})
 
     gi = repo / ".gitignore"
     tem_gitignore = gi.exists() and "session.json" in gi.read_text(encoding="utf-8", errors="replace")

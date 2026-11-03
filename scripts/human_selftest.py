@@ -8,6 +8,7 @@ exit 0 = OK | 1 = falha
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -128,12 +129,35 @@ check("perfil estável dentro do bucket de 5 min",
 check("idempotência do Outbox preservada", T.Outbox.key(_a) == T.Outbox.key(_b))
 check("langs corretos", langs == ["pt-BR"], str(langs))
 check("perfil humano escolhido", meta["humano"]["ativo"] is True)
-check("clichês removidos na saída", H.ai_tell_score(txt) == 0, repr(txt[:70]))
+# Texto que era SÓ clichê: as edições destruiriam quase todo o conteúdo
+# (virava "Bom,!."). A guarda anti-degeneração as reverte e preserva o
+# original, sinalizando regeneração. O critério mudou de "clichê removido"
+# para "nunca publicar pontuação sozinha".
+check("edições destrutivas foram revertidas",
+      meta["humano"]["edits_revertidas"] is True,
+      str(meta["humano"].get("edits_revertidas")))
+check("saída NÃO é só pontuação",
+      len(re.findall(r"[\wÀ-ÿ]+", txt)) >= 3, repr(txt[:70]))
+check("palavras preservadas",
+      meta["humano"]["palavras_depois"] >= meta["humano"]["palavras_antes"],
+      f"{meta['humano']['palavras_antes']} → {meta['humano']['palavras_depois']}")
 check("≤ 300 graphemes", meta["graphemes"] <= 300, str(meta["graphemes"]))
 check("score registrado no meta", "score_depois" in meta["humano"])
 check("sinaliza texto que era só clichê",
       meta["humano"]["recomenda_regenerar"] is True)
 check("describe() inclui bloco humano", "humano" in T.describe())
+
+# langdetect era estocástico: sem seed fixo oscilava pt-BR/sv em ~90/10.
+_detect = {T.prepare_post(CLICHE)[2]["lang"] for _ in range(50)}
+check("detecção determinística em 50 chamadas", _detect == {"pt-BR"}, str(_detect))
+check("langdetect com seed fixo", getattr(T, "_DetectorFactory", None) is not None
+      and T._DetectorFactory.seed == 0)
+_normal, _, _mn = T.prepare_post(
+    "O céu tá bonito hoje pela manhã. A luz bate diferente nas janelas e ninguém "
+    "parece ter pressa na rua. E você, o que acha?")
+check("texto normal NÃO tem edições revertidas",
+      _mn["humano"]["edits_revertidas"] is False,
+      str(_mn["humano"].get("edits_revertidas")))
 
 print("\n=== 8. texto real (não clichê) NÃO é sinalizado ===")
 _real, _lr, _mr = T.prepare_post(
