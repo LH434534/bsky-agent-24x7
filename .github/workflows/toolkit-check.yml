@@ -15,6 +15,16 @@ on:
       - 'scripts/human_selftest.py'
       - 'scripts/viral_selftest.py'
       - 'scripts/viral_baseline.json'
+      - 'scripts/secret_gate.py'
+      - 'scripts/resilience_selftest.py'
+      - 'scripts/chain.py'
+      - 'gh_runner.py'
+      - 'main.py'
+      - 'immortal.py'
+      - 'core/scheduler.py'
+      - '.gitignore'
+      - '.github/workflows/bsky-bot-24x7.yml'
+      - '.github/workflows/watchdog.yml'
       - 'scripts/toolkit_integration.py'
       - 'scripts/security_gate.py'
       - 'requirements.txt'
@@ -42,20 +52,26 @@ jobs:
       - name: versões instaladas (auditoria)
         run: python -c "from core.toolkit import describe; import json; print(json.dumps(describe(), indent=2))"
 
-      - name: 1/5 self-test do toolkit
+      - name: 1/7 self-test do toolkit
         run: python scripts/toolkit_selftest.py
 
-      - name: 2/5 integração com core/atproto.py (sem rede)
+      - name: 2/7 integração com core/atproto.py (sem rede)
         run: python scripts/toolkit_integration.py
 
-      - name: 3/5 catálogo humano (600 capacidades)
+      - name: 3/7 catálogo humano (600 capacidades)
         run: python scripts/human_selftest.py
 
-      - name: 4/5 camada viral (consultiva, sem engajamento automatizado)
+      - name: 4/7 camada viral (consultiva, sem engajamento automatizado)
         run: python scripts/viral_selftest.py
 
-      - name: 5/5 gate de segurança do próprio repo
+      - name: 5/7 gate de segurança do próprio repo
         run: python scripts/security_gate.py --repo . --json /tmp/security_gate.json
+
+      - name: 6/7 gate anti-vazamento de credenciais
+        run: python scripts/secret_gate.py --repo . --json /tmp/secret_gate.json
+
+      - name: 7/7 resiliência e disponibilidade (43 asserts)
+        run: python scripts/resilience_selftest.py
 
       - name: resumo
         if: always()

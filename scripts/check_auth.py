@@ -106,7 +106,7 @@ try:
         print(f"  SIM — DID {g.json().get('did', '?')}")
     elif g.status_code == 400:
         handle_ok = False
-        print(f"  NÃO — resolveHandle devolveu 400 para o handle configurado")
+        print("  NÃO — resolveHandle devolveu 400 para o handle configurado")
     else:
         print(f"  inconclusivo ({g.status_code}): {g.text[:120]}")
 except requests.RequestException as e:

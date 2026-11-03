@@ -38,8 +38,10 @@ def log(m: str) -> None:
     try:
         with open(LOGFILE, "a", encoding="utf-8") as f:
             f.write(line + "\n")
-    except Exception:
-        pass
+    except Exception as e:
+        # Telemetria nao pode desaparecer em silencio: se o arquivo de log
+        # estiver indisponivel, o stderr do runner ainda registra o motivo.
+        print(f"[log] arquivo indisponivel: {type(e).__name__}", file=sys.stderr, flush=True)
 
 
 def sh(*args: str, timeout: int = 120) -> tuple[int, str]:

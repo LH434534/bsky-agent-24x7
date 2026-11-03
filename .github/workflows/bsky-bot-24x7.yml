@@ -89,6 +89,10 @@ jobs:
           timeout 300 python3 tests/smoke_image.py 2>&1 | tail -20 || true
 
       - name: run agent
+        # Se o Python travar, SÓ ESTE STEP é cancelado aos 320 min;
+        # o job (350 min) continua e os steps if: always() rodam.
+        # Sem isso, um timeout no job mata a cadeia de renovação.
+        timeout-minutes: 320
         env:
           BSKY_HANDLE:            ${{ secrets.BSKY_HANDLE }}
           BSKY_APP_PASSWORD:      ${{ secrets.BSKY_APP_PASSWORD }}
@@ -105,7 +109,7 @@ jobs:
           OLLAMA_HOST:            ${{ env.OLLAMA_HOST }}
           TEST_FORCE_ACTIONS:     ${{ github.event.inputs.force_actions || 'false' }}
           FORCE_POST_TEXT:        ${{ github.event.inputs.force_text || '' }}
-          RUN_MINUTES:            ${{ github.event.inputs.force_actions == 'true' && '10' || '330' }}
+          RUN_MINUTES:            ${{ github.event.inputs.force_actions == 'true' && '10' || '300' }}
         run: |
           set -o pipefail
           python gh_runner.py 2>&1 | tee /tmp/bsky-agent.log | tail -120
@@ -118,6 +122,11 @@ jobs:
           # SEM -f: respeita .gitignore, entao data/session.json (tokens)
           # nao volta para o branch publico 'state'.
           git add data/ 2>/dev/null || true
+          # Defesa em profundidade: .gitignore pode falhar ou ser apagado.
+          # Nunca deixar um JWT chegar ao push do branch público.
+          if git diff --cached --name-only | grep -Ei '(session\.json|\.jwt$|\.env$)'; then
+            echo 'ERRO: segredo seria commitado — abortando push'; exit 1
+          fi
           if ! git diff --cached --quiet; then
             git commit -q -m "state: final $(date -u +%Y-%m-%dT%H:%MZ)" || true
             for i in 1 2 3 4; do
@@ -129,17 +138,18 @@ jobs:
       # ── 24 h de verdade ──────────────────────────────────────────────
       # Cada sessão, AO TERMINAR, dispara a próxima. Não depende do cron do
       # GitHub (que atrasa/não dispara), não deixa os ~30 min de buraco entre
-      # jobs de 330 min e recupera sozinha se o agente cair no meio.
+      # jobs de 300 min e recupera sozinha se o agente cair no meio.
       # O watchdog (15 min) e o cron original ficam como 2ª e 3ª camadas.
       - name: renovar sessao (24h)
         id: chain
         if: always()
+        timeout-minutes: 6
         env:
           GH_TOKEN:          ${{ github.token }}
           GH_REPO:           ${{ github.repository }}
           CHAIN_JOB_STATUS:  ${{ job.status }}
           CHAIN_ENABLED:     ${{ vars.BOT_CHAIN || '1' }}
-        run: python scripts/chain.py --workflow bsky-bot-24x7.yml
+        run: python scripts/chain.py --workflow bsky-bot-24x7.yml --retries 3 --retry-delay 45
 
       - name: "CADEIA: proxima sessao iniciada"
         if: ${{ always() && startsWith(steps.chain.outputs.decision, 'DISPARADO') }}

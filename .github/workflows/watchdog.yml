@@ -1,6 +1,6 @@
 name: watchdog-24x7
 
-# Supervisor de cobertura. Roda a cada 15 min e só age se NÃO houver
+# Supervisor de cobertura. Roda ~4x/hora em minutos FORA do pico (3/18/33/48) e só age se NÃO houver
 # nenhuma sessão do bot em andamento/enfileirada.
 #
 # Por que existe:
@@ -12,7 +12,7 @@ name: watchdog-24x7
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "3,18,33,48 * * * *"
   workflow_dispatch:            # para testar / forçar checagem
 
 permissions:

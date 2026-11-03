@@ -26,9 +26,9 @@ sys.path.insert(0, str(ROOT))
 DATA = ROOT / "data"
 DATA.mkdir(exist_ok=True)
 
-from core.watchdog import Immortal, already_running, spawn   # noqa: E402
+from core.watchdog import Immortal                       # noqa: E402
 from core import persist, health, autofix                    # noqa: E402
-from core.beacon import read, age, alive, pid_of             # noqa: E402
+from core.beacon import read, alive                       # noqa: E402
 
 
 def cmd_supervise():
@@ -95,7 +95,7 @@ def cmd_kill():
     me = os.getpid()
     for pat in ("immortal.py supervise", "immortal.py twin", "main.py run"):
         try:
-            out = subprocess.run(["pgrep", "-f", pat], capture_output=True, text=True).stdout
+            out = subprocess.run(["pgrep", "-f", pat], capture_output=True, text=True, timeout=10).stdout
             for line in out.split():
                 pid = int(line)
                 if pid != me:

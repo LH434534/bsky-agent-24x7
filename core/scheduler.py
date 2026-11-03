@@ -2,14 +2,12 @@
 from __future__ import annotations
 
 import logging
-import os
 import random
 import signal
-import sys
 import time
 import traceback
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, Optional
 
 log = logging.getLogger("loop")
 
@@ -67,7 +65,6 @@ class Loop:
             if fn is None:
                 time.sleep(self.tick_min)
                 continue
-            t0 = time.time()
             try:
                 did = fn()
             except Exception:
@@ -92,7 +89,9 @@ class Loop:
                 except Exception:
                     pass
 
-            spent = time.time() - t0
+            # `spent` era calculado e nunca usado (codigo morto): a cadencia
+            # e definida por `did` abaixo. Removido para nao sugerir uma
+            # compensacao de tempo que nao acontece.
             # doing something real -> rest a bit longer; idling -> come back sooner
             base = self.tick_max if did else self.tick_min
             self._sleep(base * random.uniform(0.6, 1.3),

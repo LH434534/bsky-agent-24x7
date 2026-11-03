@@ -28,7 +28,7 @@ from core.brain import Brain                       # noqa: E402
 from core.antispam import SpamGuard, Limits        # noqa: E402
 from core.memory import Memory                     # noqa: E402
 from core.actions import Actions                   # noqa: E402
-from core.scheduler import Loop, Weights           # noqa: E402
+from core.scheduler import Loop                       # noqa: E402
 
 DATA = ROOT / "data"
 DATA.mkdir(exist_ok=True)
@@ -228,7 +228,7 @@ def cmd_doctor(a) -> None:
     for p in brain.providers + [brain.offline]:
         try:
             ok = p.available()
-        except Exception as e:
+        except Exception:
             ok = False
         print(f"  brain {p.name:<12}: {'ATIVO' if ok else '-'}")
     try:

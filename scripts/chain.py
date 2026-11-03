@@ -105,6 +105,8 @@ def main() -> int:
     ap.add_argument("--ref", default="main")
     ap.add_argument("--gen", type=int, default=None, help="geração atual (modo probe)")
     ap.add_argument("--max-gen", type=int, default=3, help="para nesta geração")
+    ap.add_argument("--retries", type=int, default=0, help="tentativas extras no dispatch")
+    ap.add_argument("--retry-delay", type=int, default=45, help="segundos entre tentativas")
     a = ap.parse_args()
 
     if not TOKEN or not REPO:
@@ -154,11 +156,19 @@ def main() -> int:
         return 0
 
     st, _ = call("POST", f"/repos/{REPO}/actions/workflows/{a.workflow}/dispatches", body)
+    # Falha transitória da API não deve depender do cron (pouco confiável):
+    # tenta de novo dentro do próprio step, com teto de tempo no workflow.
+    for tentativa in range(1, a.retries + 1):
+        if st in (200, 204):
+            break
+        print(f"  dispatch HTTP {st}; tentativa {tentativa}/{a.retries} em {a.retry_delay}s", flush=True)
+        time.sleep(a.retry_delay)
+        st, _ = call("POST", f"/repos/{REPO}/actions/workflows/{a.workflow}/dispatches", body)
     if st in (200, 204):
         nxt = f" gen={a.gen + 1}" if a.gen is not None else ""
         emit(f"DISPARADO: proxima sessao de {a.workflow}{nxt} (HTTP {st})")
         return 0
-    emit(f"ERRO: dispatch -> HTTP {st}")
+    emit(f"ERRO: dispatch -> HTTP {st} apos {a.retries + 1} tentativa(s)")
     return 1
 
 
