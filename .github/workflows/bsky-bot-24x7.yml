@@ -121,7 +121,13 @@ jobs:
           git config user.name  "bsky-bot"
           # SEM -f: respeita .gitignore, entao data/session.json (tokens)
           # nao volta para o branch publico 'state'.
+          # MAS o passo `restore state` faz checkout do branch `state`, que
+          # ja teve session.json versionado: ele volta ao INDICE mesmo com
+          # .gitignore. Remover explicitamente antes e depois do add — foi
+          # isso que fez o #157 falhar neste exato step.
+          git rm --cached -f data/session.json 2>/dev/null || true
           git add data/ 2>/dev/null || true
+          git rm --cached -f data/session.json 2>/dev/null || true
           # Defesa em profundidade: .gitignore pode falhar ou ser apagado.
           # Nunca deixar um JWT chegar ao push do branch público.
           if git diff --cached --name-only | grep -Ei '(session\.json|\.jwt$|\.env$)'; then
