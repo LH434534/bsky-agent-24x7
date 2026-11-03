@@ -86,6 +86,15 @@ except Exception as _e:  # pragma: no cover
     human_likeness_score = lambda _t: 0.0  # type: ignore
     ai_tell_score = lambda _t: 0  # type: ignore
 
+# ── camada viral (consultiva, calibrada com dados reais) ────────────────────
+try:
+    from core.viral import avaliar as viral_avaliar, descrever as viral_descrever  # type: ignore
+except Exception as _e:  # pragma: no cover
+    logging.getLogger("bsky.toolkit").warning(
+        "camada viral indisponível (%s) — seguindo sem ela", _e)
+    viral_avaliar = None  # type: ignore
+    viral_descrever = lambda: {}  # type: ignore
+
 _SENTIMENT = SentimentIntensityAnalyzer() if SentimentIntensityAnalyzer else None
 
 ENABLED = os.environ.get("BOT_TOOLKIT", "1").strip().lower() not in {"0", "false", "no", "off"}
@@ -180,6 +189,23 @@ def prepare_post(text: str, langs: Optional[List[str]] = None) -> Tuple[str, Lis
             log.warning("texto era quase só clichê de IA; convém regenerar antes de postar")
     detected = detect_language(final)
     final_langs = langs or [detected]
+    viral_meta: Dict[str, Any] = {"ativo": False}
+    if viral_avaliar:
+        try:
+            vr = viral_avaliar(final)
+            viral_meta = {
+                "ativo": True,
+                "score": vr["score"],
+                "hook": vr["hook"],
+                "bloqueios": vr["bloqueios"],
+                "calibrado": vr["calibrado"],
+                "razoes": vr["razoes"][:6],
+                "recomenda_reescrita": vr["recomenda_reescrita"],
+            }
+            if vr["bloqueios"]:
+                log.warning("viral: bloqueios detectados %s", vr["bloqueios"])
+        except Exception as _e:
+            log.debug("viral: avaliação falhou (%s)", _e)
     meta = {
         "toolkit": "on",
         "changed": final != text,
@@ -187,6 +213,7 @@ def prepare_post(text: str, langs: Optional[List[str]] = None) -> Tuple[str, Lis
         "tone": tone_hint(final),
         "graphemes": len(final),
         "humano": human_meta,
+        "viral": viral_meta,
     }
     return final, final_langs, meta
 
@@ -413,4 +440,5 @@ def describe() -> Dict[str, Any]:
         },
         "health": health_snapshot(),
         "humano": human_describe(),
+        "viral": viral_descrever(),
     }

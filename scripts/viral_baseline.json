@@ -1,0 +1,13 @@
+{
+  "origem": "core/actions.py antes da camada viral (cópia fiel via API GitHub)",
+  "sha256_original": "8e7bc46b424d233383ade27141a25638789a2205e27629a6d945f82fe4645fdd",
+  "bytes": 28895,
+  "contagens": {
+    "write_post(": 7,
+    "do_like(": 1,
+    "do_follow(": 1,
+    "do_repost(": 1,
+    "createRecord": 0,
+    "createSession": 0
+  }
+}

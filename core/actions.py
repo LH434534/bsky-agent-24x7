@@ -74,19 +74,57 @@ class Actions:
         Não é 'use pergunta' seco — é o modelo receber o dado e decidir como
         escrever. Forçar estrutura deixa o texto duro e repetitivo.
         """
-        if self.G is None or not self.G.outcomes:
+        bits: List[str] = []
+        if self.G is not None and self.G.outcomes:
+            hooks = self.G.best_hooks()
+            if hooks:
+                melhor = hooks[0]
+                formas = self.G.best_shapes()
+                bits.append(f"Estruturas que mais renderam engajamento nos seus posts: {melhor[0]}")
+                if len(hooks) > 1:
+                    bits.append(f"depois {hooks[1][0]}")
+                if formas:
+                    bits.append(f"tamanho {formas[0][0]}")
+        # Camada viral: dica em linguagem natural, calibrada com os MESMOS
+        # outcomes reais. Nunca diz "use pergunta"; inclina, não força.
+        # Sem dados suficientes devolve a diretriz genérica (concretude),
+        # que é a única sustentada por evidência externa.
+        try:
+            from core.viral import calibrar, viral_hint
+            vh = viral_hint(calibrar(getattr(self.G, "outcomes", []) if self.G else []))
+            if vh:
+                bits.append(vh)
+        except Exception as e:
+            log.warning("dica viral indisponível (%s) — mantendo hint original", e)
+        if not bits:
             return ""
-        hooks = self.G.best_hooks()
-        if not hooks:
-            return ""
-        melhor = hooks[0]
-        formas = self.G.best_shapes()
-        bits = [f"Estruturas que mais renderam engajamento nos seus posts: {melhor[0]}"]
-        if len(hooks) > 1:
-            bits.append(f"depois {hooks[1][0]}")
-        if formas:
-            bits.append(f"tamanho {formas[0][0]}")
         return ". ".join(bits) + ". Não force, só incline para esse lado."
+
+    def _viral_pick(self, variantes) -> str:
+        """Escolhe entre variantes QUE JÁ FORAM GERADAS.
+
+        Custo ZERO de LLM extra: o ramo de similaridade do do_post já criava
+        uma segunda variante e descartava a primeira. Agora ranqueamos as duas
+        por qualidade de compartilhamento e ficamos com a melhor.
+        Nunca aumenta o número de posts, curtidas ou interações.
+        """
+        try:
+            from core.viral import calibrar, escolher, DecisionLog
+            cal = calibrar(getattr(self.G, "outcomes", []) if self.G else [])
+            historico = self.m.recent_texts(80) if self.m is not None else []
+            melhor, decisao = escolher(variantes, historico=historico, cal=cal)
+            log.info("viral: escolhida %s/%s score=%s hook=%s calibrado=%s",
+                     decisao.get("escolhido"), decisao.get("de"),
+                     decisao.get("score"), decisao.get("hook"),
+                     decisao.get("calibrado"))
+            try:
+                DecisionLog().registrar(decisao)
+            except Exception:
+                pass
+            return melhor or variantes[0]
+        except Exception as e:
+            log.warning("ranking viral indisponível (%s) — comportamento anterior", e)
+            return variantes[0]
 
     def _act(self, kind: str) -> bool:
         ok, why = self.g.ok(kind)
@@ -190,7 +228,9 @@ class Actions:
                                      extra=gtext)
         # já disse algo parecido? gente real não se repete
         if self.A is not None and self.A.mind.has_said_similar(text):
-            text = self.brain.write_post(self._topic(), style=style, mood=self._mood())
+            alternativa = self.brain.write_post(self._topic(), style=style, mood=self._mood())
+            # Ambas já existem — ranquear não custa nenhuma chamada extra.
+            text = self._viral_pick((text, alternativa))
         com_imagem = self._wants_image()
         return self._post_text(text, with_image=com_imagem)
 

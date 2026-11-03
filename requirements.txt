@@ -27,3 +27,11 @@ wordfreq==3.1.1
 syllables==1.1.5
 pycountry==26.2.16
 babel==2.18.0
+
+# ── camada viral (core/viral.py, consultiva e calibrada com dados reais) ─────
+# Nenhuma baixa modelo, nenhuma exige GPU, nenhuma faz download em runtime.
+rapidfuzz==3.14.5
+croniter==6.2.4
+python-slugify==9.1.3
+more-itertools==11.1.0
+numpy==2.2.6

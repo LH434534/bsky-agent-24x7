@@ -8,9 +8,13 @@ on:
     paths:
       - 'core/toolkit.py'
       - 'core/human.py'
+      - 'core/viral.py'
+      - 'core/actions.py'
       - 'core/atproto.py'
       - 'scripts/toolkit_selftest.py'
       - 'scripts/human_selftest.py'
+      - 'scripts/viral_selftest.py'
+      - 'scripts/viral_baseline.json'
       - 'scripts/toolkit_integration.py'
       - 'scripts/security_gate.py'
       - 'requirements.txt'
@@ -38,16 +42,19 @@ jobs:
       - name: versões instaladas (auditoria)
         run: python -c "from core.toolkit import describe; import json; print(json.dumps(describe(), indent=2))"
 
-      - name: 1/4 self-test do toolkit
+      - name: 1/5 self-test do toolkit
         run: python scripts/toolkit_selftest.py
 
-      - name: 2/4 integração com core/atproto.py (sem rede)
+      - name: 2/5 integração com core/atproto.py (sem rede)
         run: python scripts/toolkit_integration.py
 
-      - name: 3/4 catálogo humano (600 capacidades)
+      - name: 3/5 catálogo humano (600 capacidades)
         run: python scripts/human_selftest.py
 
-      - name: 4/4 gate de segurança do próprio repo
+      - name: 4/5 camada viral (consultiva, sem engajamento automatizado)
+        run: python scripts/viral_selftest.py
+
+      - name: 5/5 gate de segurança do próprio repo
         run: python scripts/security_gate.py --repo . --json /tmp/security_gate.json
 
       - name: resumo

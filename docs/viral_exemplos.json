@@ -1,0 +1,82 @@
+[
+  {
+    "exemplo": "observação concreta",
+    "texto": "Reparei que a luz da janela bate no teclado às 6h. O café esfriou na xícara azul. Você já viu esse silêncio?",
+    "score": 92.7,
+    "hook": "observacao",
+    "bloqueios": [],
+    "componentes": {
+      "concretude": 1.0,
+      "processamento": 1.0,
+      "autenticidade": 1.0,
+      "gancho": 0.8,
+      "novidade": 1.0,
+      "arousal_seguro": 0.659
+    }
+  },
+  {
+    "exemplo": "texto abstrato",
+    "texto": "Fundamentalmente, o paradigma contemporâneo da sinergia holística reconfigura a epistemologia do ecossistema.",
+    "score": 49.4,
+    "hook": "solto",
+    "bloqueios": [],
+    "componentes": {
+      "concretude": 0.0,
+      "processamento": 0.32,
+      "autenticidade": 1.0,
+      "gancho": 0.35,
+      "novidade": 1.0,
+      "arousal_seguro": 0.5
+    }
+  },
+  {
+    "exemplo": "clichê de IA",
+    "texto": "Excelente pergunta! Como uma IA, espero que isso ajude. 🚀 Vamos mergulhar em alguns pontos. ✅",
+    "score": 14.7,
+    "hook": "solto",
+    "bloqueios": [
+      "texto majoritariamente clichê de IA"
+    ],
+    "componentes": {
+      "concretude": 0.0,
+      "processamento": 0.85,
+      "autenticidade": 0.0,
+      "gancho": 0.35,
+      "novidade": 1.0,
+      "arousal_seguro": 0.6
+    }
+  },
+  {
+    "exemplo": "clickbait",
+    "texto": "Você não vai acreditar no que aconteceu depois. Curte e compartilha com todo mundo!",
+    "score": 20.8,
+    "hook": "solto",
+    "bloqueios": [
+      "clickbait / curiosity gap enganoso",
+      "pedido de engajamento (contra diretrizes)"
+    ],
+    "componentes": {
+      "concretude": 0.0,
+      "processamento": 1.0,
+      "autenticidade": 1.0,
+      "gancho": 0.35,
+      "novidade": 1.0,
+      "arousal_seguro": 0.322
+    }
+  },
+  {
+    "exemplo": "post humano",
+    "texto": "O céu tá bonito hoje pela manhã. A luz bate diferente nas janelas e ninguém parece ter pressa. E você, o que acha?",
+    "score": 75.6,
+    "hook": "solto",
+    "bloqueios": [],
+    "componentes": {
+      "concretude": 0.58,
+      "processamento": 1.0,
+      "autenticidade": 1.0,
+      "gancho": 0.35,
+      "novidade": 1.0,
+      "arousal_seguro": 0.6
+    }
+  }
+]
