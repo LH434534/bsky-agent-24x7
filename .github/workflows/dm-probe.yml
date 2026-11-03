@@ -31,6 +31,12 @@ jobs:
           set -e
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
 
+      # Nome dinâmico: o par HTTP/erro do chat fica visível pela API de jobs
+      # mesmo quando o download de logs devolve 403. Nao imprime conteudo.
+      - name: "PROBE: sessao=${{ steps.probe.outputs.session_status }} perfil=${{ steps.probe.outputs.profile_status }} chat=${{ steps.probe.outputs.chat_status }} erro=${{ steps.probe.outputs.chat_error }}"
+        if: always()
+        run: echo "diagnostico registrado no nome do step"
+
       # Cada diagnóstico vira um step nomeado: o resultado fica legível pela
       # API de jobs sem precisar baixar logs (o sandbox nao tem acesso a eles).
       - name: "DIAGNOSTICO: DMs ACESSIVEIS (exit 0)"

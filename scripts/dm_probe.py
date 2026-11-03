@@ -69,6 +69,20 @@ def err(d: dict) -> str:
     return f"{d.get('error', '-')}: {d.get('message', '-')}"[:180]
 
 
+def emit(**campos) -> None:
+    """Publica campos no GITHUB_OUTPUT para o jobs API (logs podem ser 403)."""
+    out = os.environ.get("GITHUB_OUTPUT")
+    if not out:
+        return
+    try:
+        with open(out, "a", encoding="utf-8") as f:
+            for k, v in campos.items():
+                # uma linha, sem quebra, sem conteúdo de mensagem
+                f.write(f"{k}={str(v)[:120].replace(chr(10), ' ')}\n")
+    except Exception:
+        pass
+
+
 def main() -> int:
     print(f"DIAG: {datetime.now(timezone.utc).isoformat(timespec='seconds')}")
     print(f"DIAG: PDS={PDS}  proxy={CHAT_PROXY}")
@@ -80,6 +94,7 @@ def main() -> int:
     st, d = call("POST", "com.atproto.server.createSession",
                  body={"identifier": HANDLE, "password": PASSWORD})
     print(f"DIAG: createSession -> HTTP {st} {err(d) if st != 200 else ''}")
+    emit(session_status=st, session_error=err(d) if st != 200 else "ok")
     if st == 0:
         print("DIAG: SEM REDE ATE O PDS"); return 4
     if st != 200:
@@ -92,6 +107,7 @@ def main() -> int:
     st_p, dp = call("GET", "app.bsky.actor.getProfile", token=token,
                     params={"actor": HANDLE})
     print(f"DIAG: app.bsky.actor.getProfile -> HTTP {st_p} {err(dp) if st_p != 200 else ''}")
+    emit(profile_status=st_p, profile_error=err(dp) if st_p != 200 else "ok")
     if st_p != 200:
         print("DIAG: token nao serve nem para AppView (nao e problema de escopo)")
         return 3
@@ -100,6 +116,7 @@ def main() -> int:
     st_c, dc = call("GET", "chat.bsky.convo.listConvos", token=token,
                     params={"limit": 25}, proxy=True)
     print(f"DIAG: chat.bsky.convo.listConvos -> HTTP {st_c} {err(dc)}")
+    emit(chat_status=st_c, chat_error=err(dc), chat_keys=",".join(sorted(dc.keys())[:8]))
 
     if st_c == 0:
         print("DIAG: SEM REDE ATE O CHAT"); return 4
