@@ -41,6 +41,16 @@ env:
   BOT_DM_SHADOW: "1"
   DM_DISCLOSURE: "1"
 
+  # ── CORTEX ──────────────────────────────────────────────────────────────
+  # "Qualidade Hollywood" = engenharia: memoria com proveniencia, plano JSON
+  # com verification+abort, tools tipadas, auditor separado, circuit breaker.
+  # CONSULTIVO: observa, propoe, audita e registra — NUNCA executa acao
+  # externa, nunca muda o texto publicado. Ver docs/CORTEX.md.
+  # ASSIST=0: nao invoca LLM extra (zero custo, zero latencia adicional).
+  BOT_CORTEX: "1"
+  BOT_CORTEX_SHADOW: "1"
+  BOT_CORTEX_ASSIST: "0"
+
 jobs:
   bot:
     runs-on: ubuntu-latest        # runner público gratuito; 14B pode cair para 7B/3B

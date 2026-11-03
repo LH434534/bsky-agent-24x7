@@ -59,6 +59,11 @@ def segredo_real(valor: str) -> bool:
 
 
 FIXTURE_TAG = "# gate:fixture"
+# O marcador so e valido em arquivos cujo NOME e de teste. Sem isto, bastava
+# acrescentar `# gate:fixture` a um `evil.py` para esconder um PAT real —
+# bypass encontrado por scripts/gate_selftest.py. Um scanner nao pode
+# confiar apenas num comentario dentro do proprio arquivo suspeito.
+FIXTURE_FILES = re.compile(r"(?:^|/)(?:test_.*|.*_selftest|.*_test)\.py$", re.I)
 SKIP_DIRS = {".git", "__pycache__", ".pytest_cache", "node_modules", ".venv", "venv"}
 SKIP_EXT = {".pyc", ".pyo", ".db", ".zip", ".gz", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".mp4"}
 MAX_BYTES = 2_000_000
@@ -102,11 +107,12 @@ def main() -> int:
             txt = p.read_text(encoding="utf-8", errors="replace")
         except Exception:
             continue
+        permite_fixture = bool(FIXTURE_FILES.search(rel))
         for i, ln in enumerate(txt.splitlines(), 1):
             # Suítes de teste PRECISAM conter segredos falsos para provar que
-            # o gate bloqueia. Só linhas explicitamente marcadas são ignoradas;
-            # qualquer segredo sem a marca continua sendo denunciado.
-            if FIXTURE_TAG in ln:
+            # o gate bloqueia. Só linhas explicitamente marcadas EM ARQUIVOS
+            # DE TESTE são ignoradas. Em `evil.py` a marca e ignorada.
+            if permite_fixture and FIXTURE_TAG in ln:
                 continue
             for tipo, rx in PATTERNS:
                 m = rx.search(ln)

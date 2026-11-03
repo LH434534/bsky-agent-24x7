@@ -232,6 +232,30 @@ def main() -> int:
         log(f"dm: modulo indisponivel ({type(e).__name__}) — seguindo sem DMs")
         dm_heartbeat = lambda: None
 
+    # CORTEX: a "qualidade Hollywood" que e ENGENHARIA (memoria com
+    # proveniencia, plano auditavel, tools tipadas, auditor separado,
+    # circuit breaker). CONSULTIVO: observa, propoe, audita e registra —
+    # NUNCA executa acao externa nem muda o texto publicado. Mesmo padrao
+    # do heartbeat das DMs (throttle 15min, fora do sorteio de acoes).
+    # Default: ligado em SHADOW, sem LLM extra. Kill switch BOT_CORTEX=0.
+    try:
+        from core.cortex import make_heartbeat as make_cortex_heartbeat
+        cortex_heartbeat = make_cortex_heartbeat(agency=A, brain=brain,
+                                                 interval_min=15.0)
+        log("cortex: carregado (consultivo, shadow, zero acao externa)")
+    except Exception as e:
+        log(f"cortex: indisponivel ({type(e).__name__}) — seguindo sem ele")
+        cortex_heartbeat = lambda: None
+
+    def heartbeat():
+        # Cada subsistema e isolado: uma excecao em DMs nao impede o cortex,
+        # e nenhuma delas chega ao motor (autonomy.py ja usa try/except).
+        for fn in (dm_heartbeat, cortex_heartbeat):
+            try:
+                fn()
+            except Exception as e:
+                log(f"heartbeat: {type(e).__name__} isolado")
+
     if os.environ.get("TEST_FORCE_ACTIONS", "").lower() in ("1", "true", "yes"):
         log("modo teste ativo: uma curtida e uma publicação")
         acts.do_like()
@@ -285,7 +309,7 @@ def main() -> int:
         adaptive=AD,
         immune=IM,
         growth=G,
-        heartbeat=dm_heartbeat,
+        heartbeat=heartbeat,
     )
 
     try:

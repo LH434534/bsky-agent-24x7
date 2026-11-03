@@ -53,6 +53,12 @@ SKIP_DIRS = {".git", ".github", "__pycache__", "node_modules", "data", ".venv", 
 SKIP_EXT = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".zip", ".db", ".pyc", ".woff", ".ttf"}
 # Um scanner não se auto-avalia: as próprias regex de risco casariam consigo.
 SKIP_FILES = {"security_gate.py"}
+# Suítes de teste PRECISAM conter payloads de ataque para provar que o
+# auditor bloqueia. O marcador só é honrado em arquivos cujo NOME é de teste
+# e apenas na LINHA marcada — um `evil.py` com a mesma marca continua sendo
+# denunciado. Ver scripts/gate_selftest.py (prova de nao-regressao).
+FIXTURE_TAG = "# gate:fixture"
+FIXTURE_FILES = re.compile(r"(?:^|/)(?:test_.*|.*_selftest|.*_test)\.py$", re.I)
 # Só código executável pode "rodar" um curl|sh. Texto em .md é documentação.
 EXEC_EXT = {".py", ".sh", ".bash", ".yml", ".yaml", ".ps1", ".bat", ".js", ".ts", ""}
 MAX_BYTES = 400_000
@@ -73,6 +79,12 @@ def scan(repo: str) -> dict:
                 txt = p.read_text(encoding="utf-8", errors="ignore")
             except OSError:
                 continue
+            # Remove APENAS linhas explicitamente marcadas, e APENAS em
+            # arquivos de teste. Todo o resto continua sendo varrido exatamente
+            # como antes (inclusive padroes que cruzam varias linhas).
+            if FIXTURE_FILES.search(rel):
+                txt = "".join(ln for ln in txt.splitlines(keepends=True)
+                              if FIXTURE_TAG not in ln)
             for categoria, rx in RULES:
                 if not rx.search(txt):
                     continue

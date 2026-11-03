@@ -177,7 +177,13 @@ try:
 except ImportError:
     check("toolkit ausente: degradacao tolerada (fallback)", True)
 check("disclosure nao duplicado", dm.reply_sanity(cfg(disclosure=True), C(), S(), dm.DISCLOSURE + "Oi")[2].count(dm.DISCLOSURE) == 1)
-st = S(); st.recent.append(dm._h(dm._norm("Tudo bem por aqui, e com você?")))
+# O hash deve ser do texto CANONICO (apos prepare_post), que e exatamente
+# o que st.record() grava em producao. Com o toolkit real instalado, a
+# camada humana aplica edicoes que variam por bucket de 5min — hashear o
+# texto BRUTO fazia este teste oscilar conforme a hora. Corrigido aqui.
+st = S()
+_, _, _canon = dm.reply_sanity(cfg(), C(), S(), "Tudo bem por aqui, e com você?")
+st.recent.append(dm._h(dm._norm(_canon)))
 check("L20 duplicata exata", dm.reply_sanity(cfg(), C(), st, "Tudo bem por aqui, e com você?")[1] == "L20_resposta_duplicada")
 check("similar() alto", dm.similar("abc def", "abc deg") > 0.8)
 check("similar() baixo", dm.similar("abc def", "xyz 123") < 0.5)

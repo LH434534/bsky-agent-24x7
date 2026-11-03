@@ -156,6 +156,22 @@ def cmd_run(a) -> None:
         print(f"  dm: indisponivel ({type(e).__name__}) — seguindo sem DMs")
         dm_heartbeat = lambda: None
 
+    # Cortex: arquitetura consultiva (ver docs/CORTEX.md). Zero acao externa.
+    try:
+        from core.cortex import make_heartbeat as make_cortex_heartbeat
+        cortex_heartbeat = make_cortex_heartbeat(agency=A, brain=brain,
+                                                 interval_min=15.0)
+    except Exception as e:
+        print(f"  cortex: indisponivel ({type(e).__name__}) — seguindo sem ele")
+        cortex_heartbeat = lambda: None
+
+    def heartbeat():
+        for fn in (dm_heartbeat, cortex_heartbeat):
+            try:
+                fn()
+            except Exception:
+                pass
+
     def wrap(fn):
         def _f() -> bool:
             r = bool(fn())
@@ -173,7 +189,7 @@ def cmd_run(a) -> None:
             on_flush=flush,
             social=S,
             growth=G,
-            heartbeat=dm_heartbeat,
+            heartbeat=heartbeat,
         ).run()
     finally:
         guard.save()
