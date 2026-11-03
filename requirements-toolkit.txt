@@ -1,0 +1,10 @@
+# Pinfile de auditoria — mesmas versões de requirements.txt.
+# Uso: pip install -r requirements-toolkit.txt (para validar só o kit, isolado)
+ftfy==6.3.1
+langdetect==1.0.9
+vaderSentiment==3.3.2
+tenacity==9.1.2
+circuitbreaker==2.0.0
+cachetools==5.5.2
+jsonschema==4.23.0
+humanize==4.11.0

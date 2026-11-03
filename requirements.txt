@@ -1,3 +1,17 @@
+# bsky-agent — dependências (instaladas em toda sessão pelo workflow principal)
 requests>=2.31
 psutil>=5.9
 Pillow>=10.0
+
+# ── toolkit de resiliência/qualidade textual (core/toolkit.py) ──────────────
+# Versões fixadas: foram as efetivamente testadas em Python 3.10 e 3.11.
+# Todas são opcionais em runtime — core/toolkit.py degrada para stdlib se
+# alguma faltar. Kill switch: BOT_TOOLKIT=0.
+ftfy==6.3.1
+langdetect==1.0.9
+vaderSentiment==3.3.2
+tenacity==9.1.2
+circuitbreaker==2.0.0
+cachetools==5.5.2
+jsonschema==4.23.0
+humanize==4.11.0

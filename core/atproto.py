@@ -6,9 +6,23 @@ import re
 import time
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import requests
+
+# ── toolkit opcional ────────────────────────────────────────────────────────
+# Se core/toolkit.py ou alguma lib faltar, o bot continua EXATAMENTE como antes.
+try:
+    from core.toolkit import (  # type: ignore
+        ENABLED as TOOLKIT_ON, Outbox, PermanentFailureGuard,
+        RateLimitGuard, handle_cache, prepare_post,
+    )
+except Exception as _e:  # pragma: no cover
+    logging.getLogger("bsky").warning("toolkit indisponível (%s) — seguindo sem ele", _e)
+    TOOLKIT_ON = False
+    Outbox = PermanentFailureGuard = RateLimitGuard = prepare_post = None  # type: ignore
+    handle_cache = lambda **_kw: {}  # type: ignore
 
 log = logging.getLogger("bsky")
 
@@ -72,10 +86,19 @@ class Bsky:
         self.access: str | None = None
         self.refresh: str | None = None
         self._last_auth: float = 0.0
-        self._handle_cache: Dict[str, str] = {}
+        # TTLCache expira handles resolvidos; antes era um dict sem limite.
+        self._handle_cache = handle_cache(maxsize=512, ttl=3600) if TOOLKIT_ON else {}
+        self.guard = (PermanentFailureGuard(threshold=2, reset_s=900)
+                      if TOOLKIT_ON else None)
+        self.rate = RateLimitGuard() if TOOLKIT_ON else None
+        # outbox.json fica ao lado de session.json (fora do git, ver gh_runner.py)
+        base = Path(self.session_file).parent if self.session_file else Path.cwd() / "data"
+        self.outbox = Outbox(base / "outbox.json", window_s=1800) if TOOLKIT_ON else None
 
     # ---------------------------------------------------------------- session
     def login(self) -> None:
+        if self.guard:
+            self.guard.check()
         if self.session_file and self._load_session():
             if self._whoami_ok():
                 log.info("session restored from disk for %s (%s)", self.handle, self.did)
@@ -86,6 +109,8 @@ class Bsky:
             timeout=30,
         )
         if r.status_code == 401:
+            if self.guard:
+                self.guard.record_failure()   # erro permanente: NÃO repetir
             raise AuthError(self.handle, r.status_code, r.text)
         if r.status_code == 403:
             # 403 pode ser o PDS (auth/rate limit) OU um proxy/policy de rede
@@ -97,6 +122,8 @@ class Bsky:
                 err = ""
             if err in ("AuthenticationRequired", "InvalidToken", "ExpiredToken",
                        "AccountDeactivated", "AccountTakedown"):
+                if self.guard:
+                    self.guard.record_failure()
                 raise AuthError(self.handle, r.status_code, r.text)
             raise ATProtoError(
                 f"acesso negado {r.status_code} (possivel bloqueio de rede/proxy, "
@@ -106,6 +133,8 @@ class Bsky:
         d = r.json()
         self.did, self.access, self.refresh = d["did"], d["accessJwt"], d["refreshJwt"]
         self._last_auth = time.time()
+        if self.guard:
+            self.guard.record_success()
         self._save_session()
         log.info("logged in as %s (%s)", self.handle, self.did)
 
@@ -204,6 +233,8 @@ class Bsky:
                 headers["Authorization"] = f"Bearer {self.access}"
             try:
                 r = self.s.request(method, url, headers=headers, params=params, json=body, timeout=45)
+                if self.rate:
+                    self.rate.observe(r.headers)
             except requests.RequestException as e:
                 log.warning("network error on %s: %s", nsid, e)
                 time.sleep(min(60, 5 * 2 ** attempt))
@@ -342,6 +373,16 @@ class Bsky:
              langs: List[str] | None = None,
              images: List[Dict[str, Any]] | None = None) -> PostRef:
         self.ensure_fresh()
+        # ── toolkit: mojibake, idioma real e idempotência ─────────────────
+        # Antes: langs era SEMPRE ["pt-BR"], mesmo para texto em inglês.
+        if TOOLKIT_ON:
+            text, langs, meta = prepare_post(text, langs)
+            log.info("toolkit lang=%s tom=%s corrigido=%s",
+                     meta["lang"], meta["tone"], meta["changed"])
+            if self.outbox and self.outbox.seen(text):
+                raise ATProtoError(
+                    "post duplicado bloqueado pelo outbox: um createRecord que "
+                    "expira pode ter publicado e o retry postaria duas vezes")
         text = text.strip()
         if not text:
             raise ValueError("empty post")
@@ -385,6 +426,8 @@ class Bsky:
 
         d = self._call("POST", "com.atproto.repo.createRecord", body={
             "repo": self.did, "collection": "app.bsky.feed.post", "record": rec})
+        if self.outbox:
+            self.outbox.mark(text)   # só após confirmação do PDS
         return PostRef(d["uri"], d["cid"])
 
     def thread(self, texts: List[str]) -> List[PostRef]:

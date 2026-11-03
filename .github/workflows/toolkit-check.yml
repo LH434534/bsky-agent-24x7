@@ -1,0 +1,52 @@
+name: toolkit-check
+
+# Valida o kit SEM postar nada e SEM credencial do Bluesky.
+# Roda em todo push que toca o toolkit e sob demanda.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'core/toolkit.py'
+      - 'core/atproto.py'
+      - 'scripts/toolkit_selftest.py'
+      - 'scripts/toolkit_integration.py'
+      - 'scripts/security_gate.py'
+      - 'requirements.txt'
+      - 'requirements-toolkit.txt'
+      - '.github/workflows/toolkit-check.yml'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: python 3.11 (mesma do workflow principal)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: versões instaladas (auditoria)
+        run: python -c "from core.toolkit import describe; import json; print(json.dumps(describe(), indent=2))"
+
+      - name: 1/3 self-test do toolkit
+        run: python scripts/toolkit_selftest.py
+
+      - name: 2/3 integração com core/atproto.py (sem rede)
+        run: python scripts/toolkit_integration.py
+
+      - name: 3/3 gate de segurança do próprio repo
+        run: python scripts/security_gate.py --repo . --json /tmp/security_gate.json
+
+      - name: resumo
+        if: always()
+        run: |
+          echo "=== security_gate.json ==="
+          cat /tmp/security_gate.json 2>/dev/null || echo "(nao gerado)"
