@@ -58,7 +58,11 @@ with tempfile.TemporaryDirectory() as td:
     b.post("Good morning, the weather is beautiful today and we should talk about it.")
     rec = cap["body"]["record"]
     check("langs = ['en']", rec["langs"] == ["en"], str(rec["langs"]))
-    check("texto preservado", "Good morning" in rec["text"])
+    # O perfil humano pode pôr "Well, good morning..." — capitalizar de novo
+    # é legítimo; conferimos case-insensitive que o conteúdo não se perdeu.
+    check("texto preservado", "good morning" in rec["text"].lower(), rec["text"][:70])
+    check("nenhum marcador em português num post em inglês",
+          "Bom, " not in rec["text"] and "Pois é" not in rec["text"])
 
 print("\n=== 2. post(): ftfy corrige mojibake antes de publicar ===")
 with tempfile.TemporaryDirectory() as td:

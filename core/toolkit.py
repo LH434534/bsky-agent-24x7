@@ -17,6 +17,16 @@ Ferramentas (todas testadas em Python 3.10 e 3.11, sem GPU/rede):
   jsonschema      4.23.0       valida data/*.json antes de gravar
   humanize        4.11.0       formatação legível de uptime/contadores
   psutil          (já no requirements) telemetria do runner
+  emoji           2.16.0       aliases :wave: → emoji real
+  textstat        0.7.13       legibilidade (Flesch) no score de humanidade
+  unidecode       1.4.0        transliteração segura
+  regex           2026.9.29    regex Unicode mais correta que `re`
+  python-dateutil 3.0.0        parsing de timestamps do feed
+  wordfreq        3.1.1        frequência lexical (evita vocabulário artificial)
+  syllables       1.1.5        contagem de sílabas
+  pycountry       26.2.16      códigos de país/idioma
+  babel           2.18.0       formatação de data por locale
+  core/human.py   —           600 capacidades (576 perfis + 24 utils)
 
 Atribuição: o security_gate.py deste repo é derivado das categorias de risco
 publicadas por Tencent Zhuque Lab AI-Infra-Guard (Apache-2.0):
@@ -58,6 +68,23 @@ TTLCache = _try("cachetools", "TTLCache")
 cached = _try("cachetools", "cached")
 validate = _try("jsonschema", "validate")
 naturaltime = _try("humanize", "naturaltime")
+
+# ── camada de humanidade (600 capacidades) ──────────────────────────────────
+try:
+    from core.human import (  # type: ignore
+        ENABLED as HUMAN_ON, apply as apply_human,
+        catalog as human_catalog, describe as human_describe,
+        human_likeness_score, ai_tell_score,
+    )
+except Exception as _e:  # pragma: no cover
+    logging.getLogger("bsky.toolkit").warning(
+        "camada humana indisponível (%s) — seguindo sem ela", _e)
+    HUMAN_ON = False
+    apply_human = None  # type: ignore
+    human_catalog = lambda: []  # type: ignore
+    human_describe = lambda: {}  # type: ignore
+    human_likeness_score = lambda _t: 0.0  # type: ignore
+    ai_tell_score = lambda _t: 0  # type: ignore
 
 _SENTIMENT = SentimentIntensityAnalyzer() if SentimentIntensityAnalyzer else None
 
@@ -123,16 +150,45 @@ def prepare_post(text: str, langs: Optional[List[str]] = None) -> Tuple[str, Lis
     if not ENABLED:
         return text.strip(), (langs or ["pt-BR"]), {"toolkit": "off"}
     clean = clean_text(text)
-    detected = detect_language(clean)
+    # Camada humana: escolhe 1 dos 576 perfis de forma determinística e aplica
+    # no máximo HUMAN_MAX_EDITS (padrão 2) transformações conservadoras.
+    final = clean
+    human_meta: Dict[str, Any] = {"ativo": False}
+    if HUMAN_ON and apply_human:
+        # IMPORTANTE: sem um ts estável, choose() cairia em time.time() e dois
+        # posts idênticos poderiam receber perfis diferentes — o que furaria o
+        # Outbox (hashes distintos → duplicata publicada). Usamos um bucket de
+        # 5 min: mesmo texto na mesma janela = mesmo perfil = mesma chave.
+        bucket = int(time.time() // 300)
+        cap = None
+        try:
+            from core.human import choose as human_choose  # type: ignore
+            cap = human_choose(clean, ts=bucket, actor="", salt="post")
+        except Exception:
+            cap = None
+        final, hm = apply_human(clean, cap)
+        human_meta = {
+            "ativo": True,
+            "perfil": hm["id"],
+            "edits": hm["edits"],
+            "ai_tells_removidos": hm["ai_tells_antes"] - hm["ai_tells_depois"],
+            "score_antes": human_likeness_score(clean),
+            "score_depois": human_likeness_score(final),
+            "recomenda_regenerar": hm.get("recomenda_regenerar", False),
+        }
+        if human_meta["recomenda_regenerar"]:
+            log.warning("texto era quase só clichê de IA; convém regenerar antes de postar")
+    detected = detect_language(final)
     final_langs = langs or [detected]
     meta = {
         "toolkit": "on",
-        "changed": clean != text,
+        "changed": final != text,
         "lang": detected,
-        "tone": tone_hint(clean),
-        "graphemes": len(clean),
+        "tone": tone_hint(final),
+        "graphemes": len(final),
+        "humano": human_meta,
     }
-    return clean, final_langs, meta
+    return final, final_langs, meta
 
 
 # ------------------------------------------------- 2. idempotência (Outbox)
@@ -356,4 +412,5 @@ def describe() -> Dict[str, Any]:
             "jsonschema": bool(validate), "humanize": bool(naturaltime),
         },
         "health": health_snapshot(),
+        "humano": human_describe(),
     }

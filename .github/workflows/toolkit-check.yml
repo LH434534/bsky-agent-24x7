@@ -7,8 +7,10 @@ on:
   push:
     paths:
       - 'core/toolkit.py'
+      - 'core/human.py'
       - 'core/atproto.py'
       - 'scripts/toolkit_selftest.py'
+      - 'scripts/human_selftest.py'
       - 'scripts/toolkit_integration.py'
       - 'scripts/security_gate.py'
       - 'requirements.txt'
@@ -42,7 +44,10 @@ jobs:
       - name: 2/3 integração com core/atproto.py (sem rede)
         run: python scripts/toolkit_integration.py
 
-      - name: 3/3 gate de segurança do próprio repo
+      - name: 3/4 catálogo humano (600 capacidades)
+        run: python scripts/human_selftest.py
+
+      - name: 4/4 gate de segurança do próprio repo
         run: python scripts/security_gate.py --repo . --json /tmp/security_gate.json
 
       - name: resumo

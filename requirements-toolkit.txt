@@ -8,3 +8,12 @@ circuitbreaker==2.0.0
 cachetools==5.5.2
 jsonschema==4.23.0
 humanize==4.11.0
+emoji==2.16.0
+textstat==0.7.13
+unidecode==1.4.0
+regex==2026.9.29
+python-dateutil==3.0.0
+wordfreq==3.1.1
+syllables==1.1.5
+pycountry==26.2.16
+babel==2.18.0
