@@ -38,10 +38,10 @@ jobs:
       - name: versões instaladas (auditoria)
         run: python -c "from core.toolkit import describe; import json; print(json.dumps(describe(), indent=2))"
 
-      - name: 1/3 self-test do toolkit
+      - name: 1/4 self-test do toolkit
         run: python scripts/toolkit_selftest.py
 
-      - name: 2/3 integração com core/atproto.py (sem rede)
+      - name: 2/4 integração com core/atproto.py (sem rede)
         run: python scripts/toolkit_integration.py
 
       - name: 3/4 catálogo humano (600 capacidades)
