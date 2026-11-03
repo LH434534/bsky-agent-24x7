@@ -1,7 +1,8 @@
 # Auditoria de disponibilidade — 2026-11-03
 
 **STATUS: CONCLUÍDO (com um limite honesto)**
-**Commits:** `27ceb0aab7c5` (revogação) · `8a7cd7f68d` (remoção + `.gitignore`) · `<final>` (robustez)
+**Commits:** `27ceb0aab7c5` (revogação) · `8a7cd7f68d` (remoção + `.gitignore`) · `80981b6875a5` (robustez) · **`4645d3e1eb1`** (correções do CI)
+**`main`:** `4645d3e1eb155d054428343b1a6fc2dbae33a8df`
 
 ---
 
@@ -151,8 +152,8 @@ isso para sempre.
 | Subprocess/HTTP sem timeout | **0** |
 | `chain.py` contra API mock | 7 decisões: DESLIGADO, CANCELADO, AGUARDANDO, ATIVO, DISPARADO, retry 503→DISPARADO, 500→ERRO |
 | `security-revoke` #4 no runner | **success** — 3 sessões revogadas |
-| `auth-check` (PDS real) | **success** — App Password intacta |
-| `toolkit-check` no runner | **7/7 etapas** (após correção do #5) |
+| `auth-check` #12 (PDS real) | **success** — App Password intacta |
+| `toolkit-check` #6 no runner | **success, 7/7 etapas** (após correção do #5) |
 
 ---
 

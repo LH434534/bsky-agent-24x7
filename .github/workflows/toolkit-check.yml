@@ -70,7 +70,7 @@ jobs:
       - name: 6/7 gate anti-vazamento de credenciais
         run: python scripts/secret_gate.py --repo . --json /tmp/secret_gate.json
 
-      - name: 7/7 resiliência e disponibilidade (43 asserts)
+      - name: 7/7 resiliência e disponibilidade (52 asserts)
         run: python scripts/resilience_selftest.py
 
       - name: resumo
