@@ -42,8 +42,15 @@ d = H.describe()
 check("4×4×3×3×4 = 576",
       [len(v) for v in d["dimensoes"].values()] == [4, 4, 3, 3, 4],
       str([len(v) for v in d["dimensoes"].values()]))
-check("12 libs reconhecidas", sum(d["libs"].values()) >= 10,
-      f"{sum(d['libs'].values())}/12")
+# O contrato do toolkit e DEGREDAR para stdlib quando uma lib opcional
+# falta (e o auth-check so instala `requests`). Exigir >=10 libs aqui dava
+# vermelho em ambientes legitimos sem deps — nao era bug do codigo.
+check("12 libs inventariadas", len(d["libs"]) == 12
+      and all(isinstance(v, bool) for v in d["libs"].values()),
+      f"{len(d['libs'])}/12")
+check("toolkit funciona com e sem libs opcionais",
+      T.prepare_post("Oi, tudo bem com você hoje?")[0].strip() != "",
+      f"{sum(d['libs'].values())}/12 instaladas")
 check("clichês de IA catalogados",
       d["ai_tells_catalogados"] == len(H.AI_TELLS) and len(H.AI_TELLS) >= 40,
       str(d["ai_tells_catalogados"]))
@@ -147,11 +154,38 @@ check("sinaliza texto que era só clichê",
       meta["humano"]["recomenda_regenerar"] is True)
 check("describe() inclui bloco humano", "humano" in T.describe())
 
+# REGRESSAO: a guarda anti-degeneracao oscilava conforme o perfil sorteado
+# pelo bucket de 5min. Percorremos 20 buckets (100 min) e exigimos que
+# TODOS revertam um texto denso em cliches — sem depender da hora do CI.
+import os as _os
+_saved_ts = _os.environ.get("BOT_HUMAN_TS")
+_perfis, _nao_revertidos = set(), []
+for _ts in range(1730000000, 1730000000 + 20 * 300, 300):
+    _os.environ["BOT_HUMAN_TS"] = str(_ts)
+    _tt, _, _mm = T.prepare_post(CLICHE)
+    _perfis.add(_mm["humano"]["perfil"])
+    if not _mm["humano"]["edits_revertidas"]:
+        _nao_revertidos.append((_ts, _mm["humano"]["perfil"],
+                                _mm["humano"]["palavras_antes"],
+                                _mm["humano"]["palavras_depois"]))
+if _saved_ts is None:
+    _os.environ.pop("BOT_HUMAN_TS", None)
+else:
+    _os.environ["BOT_HUMAN_TS"] = _saved_ts
+check("20 buckets: cliche SEMPRE revertido", not _nao_revertidos,
+      str(_nao_revertidos[:3]))
+check("20 buckets: perfis realmente variam", len(_perfis) > 1,
+      f"{len(_perfis)} perfis distintos")
+check("BOT_HUMAN_TS nao vaza para producao",
+      _os.environ.get("BOT_HUMAN_TS") == _saved_ts)
+
 # langdetect era estocástico: sem seed fixo oscilava pt-BR/sv em ~90/10.
 _detect = {T.prepare_post(CLICHE)[2]["lang"] for _ in range(50)}
 check("detecção determinística em 50 chamadas", _detect == {"pt-BR"}, str(_detect))
-check("langdetect com seed fixo", getattr(T, "_DetectorFactory", None) is not None
-      and T._DetectorFactory.seed == 0)
+_df = getattr(T, "_DetectorFactory", None)
+check("langdetect com seed fixo (quando instalado)",
+      (_df is not None and _df.seed == 0) if d["libs"].get("langdetect") else _df is None,
+      f"lib={d['libs'].get('langdetect')} df={_df!r}")
 _normal, _, _mn = T.prepare_post(
     "O céu tá bonito hoje pela manhã. A luz bate diferente nas janelas e ninguém "
     "parece ter pressa na rua. E você, o que acha?")

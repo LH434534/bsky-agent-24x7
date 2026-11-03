@@ -180,7 +180,12 @@ def prepare_post(text: str, langs: Optional[List[str]] = None) -> Tuple[str, Lis
         # posts idênticos poderiam receber perfis diferentes — o que furaria o
         # Outbox (hashes distintos → duplicata publicada). Usamos um bucket de
         # 5 min: mesmo texto na mesma janela = mesmo perfil = mesma chave.
-        bucket = int(time.time() // 300)
+        # BOT_HUMAN_TS permite fixar o bucket em testes de regressao. Em
+        # producao a variavel nao existe e o comportamento (janela de 5min)
+        # permanece identico. Sem isto, um teste que dependesse do perfil
+        # sorteado oscilaria conforme a hora — ja aconteceu 3 vezes.
+        _ts = os.environ.get("BOT_HUMAN_TS", "").strip()
+        bucket = int(_ts) if _ts.lstrip("-").isdigit() else int(time.time() // 300)
         cap = None
         try:
             from core.human import choose as human_choose  # type: ignore
@@ -207,7 +212,16 @@ def prepare_post(text: str, langs: Optional[List[str]] = None) -> Tuple[str, Lis
         # de um trecho removido; não existe em texto natural ("E você, o que?").
         residuo = bool(re.search(r"[,.;:!?]\s*[,.;:!?]", final))
         comeco_quebrado = bool(re.match(r"^[\W_]{0,12}[,.;:!?]", final))
-        degenerou = (len(palavras_depois) < 2 or perda > 0.40
+        # Um texto DENSO em cliches ja teve os cliches removidos por
+        # strip_ai_tells. Se o perfil ainda comeu >10% das palavras, ele
+        # removou CONTEUDO, nao cliche — mesmo sem deixar pontuacao orfa.
+        # Era exatamente o caso do perfil H0360: 21 -> 15 palavras (28,6%),
+        # abaixo do limiar antigo de 40%, e o CI oscilava com a hora.
+        # Para texto normal sem cliches mantemos o limiar original de 40%
+        # para nao desfazer edições legitimas.
+        denso_cliches = int(hm.get("ai_tells_antes", 0) or 0) >= 3
+        limiar_perda = 0.10 if denso_cliches else 0.40
+        degenerou = (len(palavras_depois) < 2 or perda > limiar_perda
                      or residuo or comeco_quebrado)
         if degenerou:
             log.warning("edições humanas removeram quase todo o conteúdo — revertidas")
