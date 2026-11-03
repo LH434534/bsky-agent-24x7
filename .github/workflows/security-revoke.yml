@@ -1,7 +1,9 @@
 name: security-revoke
 
-# Contenção de incidente: data/session.json (accessJwt/refreshJwt) estava
-# legível ANONIMAMENTE no branch público `state`.
+# Contenção de incidente: data/session.json (access/refresh JWT) estava
+# legível ANONIMAMENTE no branch público `main` (e possivelmente em `state`).
+# 2026-11-03: refresh válido até 2027-01-02, repo público, sem .gitignore.
+# Varre main + state + authdiag, não só `state`.
 #
 # Só roda por disparo manual. Nunca imprime tokens.
 # O bot NÃO para: ao perder a sessão, gh_runner.py faz login fresco com a
@@ -34,7 +36,7 @@ jobs:
           BSKY_PDS: https://bsky.social
         run: |
           set +e
-          python scripts/revoke_leaked_session.py 2>&1 | tee /tmp/revoke.log
+          python scripts/revoke_all_sessions.py 2>&1 | tee /tmp/revoke.log
           echo "rc=${PIPESTATUS[0]}" >> /tmp/revoke.log
           # continue-on-error mantém os outputs e os steps de decisão rodando
 
