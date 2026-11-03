@@ -21,22 +21,22 @@ jobs:
       - name: instalar dependências reais
         run: pip install -r requirements.txt
 
-      - name: 1/7 self-test do cortex (128 asserts)
+      - name: 1/8 self-test do cortex (128 asserts)
         run: python scripts/cortex_selftest.py
 
-      - name: 2/7 prova de nao-regressao dos gates (28 asserts)
+      - name: 2/8 prova de nao-regressao dos gates (28 asserts)
         run: python scripts/gate_selftest.py
 
-      - name: 3/7 gate anti-vazamento
+      - name: 3/8 gate anti-vazamento
         run: python scripts/secret_gate.py --repo .
 
-      - name: 4/7 gate de segurança do próprio repo
+      - name: 4/8 gate de segurança do próprio repo
         run: python scripts/security_gate.py --repo .
 
-      - name: 5/7 regressão das DMs (20 camadas)
+      - name: 5/8 regressão das DMs (20 camadas)
         run: python scripts/dm_selftest.py
 
-      - name: 6/7 probe fim-a-fim no runner
+      - name: 6/8 probe fim-a-fim no runner (modo padrão)
         id: probe
         run: python scripts/cortex_runner_probe.py
 
@@ -44,7 +44,16 @@ jobs:
         if: always()
         run: echo "resumo registrado no nome do step"
 
-      - name: 7/7 compilação de todos os módulos
+      # Exercita o caminho _plan() -> LLM -> Plan.from_json() -> Auditor com
+      # brain mock. NAO liga Ollama: core/brain.py:82 tem timeout=180s, o que
+      # bloquearia o heartbeat em producao. Aqui provamos que o caminho roda
+      # e continua com ZERO acao externa.
+      - name: 7/8 probe em modo ASSISTIDO (LLM mock, ainda 0 ações)
+        env:
+          BOT_CORTEX_ASSIST: "1"
+        run: python scripts/cortex_runner_probe.py
+
+      - name: 8/8 compilação de todos os módulos
         run: |
           python -m py_compile core/cortex.py core/dm.py core/toolkit.py \
             core/human.py core/viral.py gh_runner.py main.py \
