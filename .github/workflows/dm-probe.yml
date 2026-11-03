@@ -1,0 +1,64 @@
+name: dm-probe
+
+# Diagnóstico SOMENTE LEITURA do acesso a DMs.
+# Nao envia mensagem, nao marca como lida, nao imprime conteudo de mensagens.
+# Rode sob demanda para saber se a App Password atual tem escopo de DM.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: checar escopo de DM (somente leitura)
+        id: probe
+        env:
+          BSKY_HANDLE:       ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+          BSKY_PDS:          https://bsky.social
+        run: |
+          set +e
+          python scripts/dm_probe.py
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      # Cada diagnóstico vira um step nomeado: o resultado fica legível pela
+      # API de jobs sem precisar baixar logs (o sandbox nao tem acesso a eles).
+      - name: "DIAGNOSTICO: DMs ACESSIVEIS (exit 0)"
+        if: steps.probe.outputs.exit_code == '0'
+        run: echo "escopo de DM presente; listConvos respondeu 200"
+
+      - name: "DIAGNOSTICO: APP PASSWORD SEM ESCOPO DE DM (exit 2)"
+        if: steps.probe.outputs.exit_code == '2'
+        run: exit 1
+
+      - name: "DIAGNOSTICO: CREDENCIAL INVALIDA (exit 3)"
+        if: steps.probe.outputs.exit_code == '3'
+        run: exit 1
+
+      - name: "DIAGNOSTICO: SEM REDE ATE O PDS (exit 4)"
+        if: steps.probe.outputs.exit_code == '4'
+        run: exit 1
+
+      - name: "DIAGNOSTICO: CHAT RECUSOU POR OUTRO MOTIVO (exit 5)"
+        if: steps.probe.outputs.exit_code == '5'
+        run: exit 1
+
+      - name: "DIAGNOSTICO: RESPOSTA INESPERADA (exit 6)"
+        if: steps.probe.outputs.exit_code == '6'
+        run: exit 1
+
+      - name: "DIAGNOSTICO: CODIGO DESCONHECIDO"
+        if: ${{ !contains(fromJSON('["0","2","3","4","5","6"]'), steps.probe.outputs.exit_code) }}
+        run: |
+          echo "codigo=${{ steps.probe.outputs.exit_code }}"
+          exit 1
