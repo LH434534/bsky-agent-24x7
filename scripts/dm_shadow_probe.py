@@ -109,13 +109,83 @@ def main() -> int:
          send_calls=len(envios),
          erros=",".join(resumo["erros"])[:100])
 
+    # ── Fase 2: fixtures sintéticas NO PRÓPRIO RUNNER ────────────────────
+    # A caixa de entrada pode estar vazia (convos=0). Sem isto o CI provaria
+    # só a rede, não o pipeline. Aqui exercitamos getMessages + as 20 camadas
+    # + reply_sanity COM o toolkit real instalado, sem tocar em rede alguma.
+    from datetime import datetime, timezone
+
+    agora = __import__("time").time()
+    fresco = datetime.fromtimestamp(agora - 60, timezone.utc).isoformat().replace("+00:00", "Z")
+
+    class LocalClient(D.DMClient):
+        def __init__(self):
+            super().__init__(lambda: "tok", self_did="did:plc:BOT")
+            self.sent = []
+            self.calls = []
+
+        def call(self, method, nsid, *, params=None, body=None):
+            self.calls.append((method, nsid))
+            if nsid == D.NS_LIST:
+                return 200, {"convos": [
+                    {"id": "c_ok", "status": "accepted", "kind": "direct",
+                     "members": [{"did": "d1"}, {"did": "did:plc:BOT"}]},
+                    {"id": "c_spam", "status": "accepted", "kind": "direct",
+                     "members": [{"did": "d2"}, {"did": "did:plc:BOT"}]},
+                    {"id": "c_optout", "status": "accepted", "kind": "direct",
+                     "members": [{"did": "d3"}, {"did": "did:plc:BOT"}]},
+                    {"id": "c_request", "status": "request", "kind": "direct",
+                     "members": [{"did": "d4"}, {"did": "did:plc:BOT"}]},
+                ]}
+            if nsid == D.NS_MESSAGES:
+                cid = (params or {}).get("convoId")
+                textos = {
+                    "c_ok": ("Oi, tudo bem com você hoje?", "did:plc:HUMANO"),
+                    "c_spam": ("FREE AIRDROP 100x join telegram dm me", "did:plc:H2"),
+                    "c_optout": ("não responda mais, por favor", "did:plc:H3"),
+                    "c_request": ("Oi!", "did:plc:H4"),
+                }
+                txt, snd = textos.get(cid, ("", ""))
+                return 200, {"messages": [
+                    {"id": "m_" + str(cid), "text": txt,
+                     "sender": {"did": snd}, "sentAt": fresco}]}
+            if nsid == D.NS_SEND:
+                self.sent.append(body)
+                return 200, {}
+            return 404, {}
+
+    lc = LocalClient()
+    cfg2 = D.Config.from_env()
+    cfg2.self_did = "did:plc:BOT"
+    cfg2.shadow = True
+    cfg2.enabled = True
+    st2 = D.DMState(Path(os.environ.get("DM_FIXTURE_STATE", ROOT / "data" / "dm_fixture_state.json")))
+    bot2 = D.DMBot(lc, st2, cfg2, reply_fn=reply_fn)
+    r2 = bot2.run_once()
+    esp = {
+        "teria_enviado": r2.get("shadow_teria_enviado", 0),
+        "bloqueadas": r2.get("bloqueadas", 0),
+        "enviadas": r2.get("enviadas", 0),
+        "send_calls": sum(1 for _, n in lc.calls if n == D.NS_SEND),
+        "motivos": sorted(r2.get("motivos", {}).keys()),
+    }
+    print("DIAG FIXTURE: " + json.dumps(esp, ensure_ascii=False, sort_keys=True))
+    emit(fx_teria_enviado=esp["teria_enviado"], fx_bloqueadas=esp["bloqueadas"],
+         fx_enviadas=esp["enviadas"], fx_send_calls=esp["send_calls"])
+
     if resumo["erros"] and not leitura_ok:
         print("DIAG: listConvos nao alcancado")
         return 1
     if resumo["enviadas"] != 0 or envios:
         print("DIAG: FALHA CRITICA — shadow enviou mensagem")
         return 1
-    print("DIAG: SHADOW_OK — zero mensagens enviadas, guard ativo")
+    if esp["enviadas"] != 0 or esp["send_calls"] != 0:
+        print("DIAG: FALHA CRITICA — fixture enviou mensagem")
+        return 1
+    if esp["teria_enviado"] != 1 or esp["bloqueadas"] != 3:
+        print(f"DIAG: guard nao se comportou como esperado: {esp}")
+        return 1
+    print("DIAG: SHADOW_OK — zero mensagens enviadas, 1 elegivel, 3 bloqueadas")
     return 0
 
 

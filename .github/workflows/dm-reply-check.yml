@@ -41,7 +41,7 @@ jobs:
           set -e
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
 
-      - name: "SHADOW: status=${{ steps.shadow.outputs.dm_status }} convos=${{ steps.shadow.outputs.convos }} bloqueadas=${{ steps.shadow.outputs.bloqueadas }} teria_enviado=${{ steps.shadow.outputs.teria_enviado }} ENVIADAS=${{ steps.shadow.outputs.enviadas }} send_calls=${{ steps.shadow.outputs.send_calls }}"
+      - name: "SHADOW: status=${{ steps.shadow.outputs.dm_status }} convos=${{ steps.shadow.outputs.convos }} ENVIADAS=${{ steps.shadow.outputs.enviadas }} send_calls=${{ steps.shadow.outputs.send_calls }} | FIXTURE: elegiveis=${{ steps.shadow.outputs.fx_teria_enviado }} bloqueadas=${{ steps.shadow.outputs.fx_bloqueadas }} enviadas=${{ steps.shadow.outputs.fx_enviadas }}"
         if: always()
         run: echo "resumo registrado no nome do step"
 
