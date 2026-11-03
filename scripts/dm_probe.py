@@ -39,8 +39,8 @@ CHAT_PROXY = "did:web:api.bsky.chat#bsky_chat"
 
 def call(method: str, nsid: str, *, token: str | None = None,
          params: dict | None = None, body: dict | None = None,
-         proxy: bool = False):
-    url = f"{PDS}/xrpc/{nsid}"
+         proxy: bool = False, base: str | None = None):
+    url = f"{(base or PDS).rstrip('/')}/xrpc/{nsid}"
     if params:
         url += "?" + urllib.parse.urlencode(params)
     headers = {"Accept": "application/json"}
@@ -67,6 +67,21 @@ def call(method: str, nsid: str, *, token: str | None = None,
 
 def err(d: dict) -> str:
     return f"{d.get('error', '-')}: {d.get('message', '-')}"[:180]
+
+
+def resolver_pds(d: dict) -> str | None:
+    """O PDS real mora no didDoc; bsky.social é só o entryway.
+
+    O entryway responde 501 para NSIDs de chat — ele não faz o proxy.
+    """
+    doc = d.get("didDoc") or {}
+    for svc in doc.get("service") or []:
+        sid = str(svc.get("id") or "")
+        ep = svc.get("serviceEndpoint")
+        if isinstance(ep, str) and ep.startswith("http") and (
+                sid.endswith("#atproto_pds") or "PersonalDataServer" in str(svc.get("type") or "")):
+            return ep.rstrip("/")
+    return None
 
 
 def emit(**campos) -> None:
@@ -112,35 +127,73 @@ def main() -> int:
         print("DIAG: token nao serve nem para AppView (nao e problema de escopo)")
         return 3
 
-    # 3) chat — serviço separado, exige proxy + App Password privilegiada
-    st_c, dc = call("GET", "chat.bsky.convo.listConvos", token=token,
-                    params={"limit": 25}, proxy=True)
-    print(f"DIAG: chat.bsky.convo.listConvos -> HTTP {st_c} {err(dc)}")
-    emit(chat_status=st_c, chat_error=err(dc), chat_keys=",".join(sorted(dc.keys())[:8]))
+    # 3) chat — serviço SEPARADO. Quatro rotas legítimas, todas somente leitura.
+    nsid, params = "chat.bsky.convo.listConvos", {"limit": 25}
+    pds_real = resolver_pds(d)
+    print(f"DIAG: PDS real do didDoc presente={bool(pds_real)}")
+    emit(pds_real=bool(pds_real))
 
-    if st_c == 0:
+    rotas = []
+    sa, da = call("GET", nsid, token=token, params=params, proxy=True)
+    rotas.append(("entryway+proxy", sa, da))
+    if pds_real:
+        sb, db = call("GET", nsid, token=token, params=params, proxy=True, base=pds_real)
+        rotas.append(("pds_real+proxy", sb, db))
+    sc, dc = call("GET", nsid, token=token, params=params,
+                  base="https://api.bsky.chat")
+    rotas.append(("chat_host+accessJwt", sc, dc))
+
+    # service-auth: o PDS assina um token de serviço para o chat
+    st_s, ds = call("GET", "com.atproto.server.getServiceAuth", token=token,
+                    params={"aud": "did:web:api.bsky.chat"},
+                    base=pds_real or PDS)
+    emit(serviceauth_status=st_s, serviceauth_token=bool(ds.get("token")))
+    if st_s == 200 and ds.get("token"):
+        sd, dd = call("GET", nsid, token=ds["token"], params=params,
+                      base="https://api.bsky.chat")
+        rotas.append(("chat_host+serviceAuth", sd, dd))
+
+    for i, (nome, st, dd) in enumerate(rotas):
+        linha = f"DIAG: rota {nome} -> HTTP {st} " + (f"{err(dd)}" if st != 200 else "OK")
+        print(linha[:200])
+        emit(**{f"r{i}_nome": nome, f"r{i}_status": st,
+                f"r{i}_erro": err(dd) if st != 200 else "ok"})
+
+    def blob(dd):
+        return (err(dd) + " " + json.dumps(dd, ensure_ascii=False)[:300]).lower()
+
+    if any(st == 0 for _, st, _ in rotas):
         print("DIAG: SEM REDE ATE O CHAT"); return 4
-    if st_c == 200:
-        convos = dc.get("convos") or []
+    ok = next(((n, dd) for n, st, dd in rotas if st == 200), None)
+    if ok:
+        nome, dd = ok
+        convos = dd.get("convos") or []
         unread = 0
         for c in convos:
             try:
                 unread += int(c.get("unreadCount") or 0)
             except Exception:
                 pass
-        # Só números. Nenhum texto, nenhum participante, nenhum id de mensagem.
-        print(f"DIAG: DM_OK conversas={len(convos)} nao_lidas={unread} cursor={bool(dc.get('cursor'))}")
-        print("DIAG: (somente leitura; nada foi enviado nem marcado como lido)")
+        # Só números. Nenhum texto, participante ou id de mensagem.
+        print(f"DIAG: DM_OK via {nome} conversas={len(convos)} "
+              f"nao_lidas={unread} cursor={bool(dd.get('cursor'))}")
+        print("DIAG: (somente leitura; nada enviado nem marcado como lido)")
+        emit(chat_status=200, chat_error="ok")
         return 0
 
-    blob = (err(dc) + " " + json.dumps(dc, ensure_ascii=False)[:300]).lower()
-    if "scope" in blob or "privileg" in blob or "invalidtoken" in blob:
+    if any("scope" in blob(dd) or "invalidtoken" in blob(dd) for _, _, dd in rotas):
         print("DIAG: APP PASSWORD SEM ESCOPO DE DM")
         print("DIAG: acao humana: criar NOVA App Password marcando "
               "'Allow access to your direct messages' e revogar a antiga")
+        emit(chat_status="scope", chat_error="Bad token scope")
         return 2
-    if st_c in (401, 403):
-        print(f"DIAG: CHAT RECUSOU POR OUTRO MOTIVO (HTTP {st_c})"); return 5
+    if any(st in (501, 404, 405) for _, st, _ in rotas):
+        print("DIAG: ROTEAMENTO — chat nao alcancado pelo entryway; "
+              "precisa do PDS real / service auth")
+        emit(chat_status=501, chat_error="MethodNotImplemented/Not Found")
+        return 7
+    if any(st in (401, 403) for _, st, _ in rotas):
+        print("DIAG: CHAT RECUSOU POR OUTRO MOTIVO"); return 5
     print("DIAG: RESPOSTA INESPERADA"); return 6
 
 

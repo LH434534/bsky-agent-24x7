@@ -33,9 +33,13 @@ jobs:
 
       # Nome dinâmico: o par HTTP/erro do chat fica visível pela API de jobs
       # mesmo quando o download de logs devolve 403. Nao imprime conteudo.
-      - name: "PROBE: sessao=${{ steps.probe.outputs.session_status }} perfil=${{ steps.probe.outputs.profile_status }} chat=${{ steps.probe.outputs.chat_status }} erro=${{ steps.probe.outputs.chat_error }}"
+      - name: "PROBE: sessao=${{ steps.probe.outputs.session_status }} perfil=${{ steps.probe.outputs.profile_status }} pdsReal=${{ steps.probe.outputs.pds_real }} svcAuth=${{ steps.probe.outputs.serviceauth_status }}"
         if: always()
-        run: echo "diagnostico registrado no nome do step"
+        run: echo "diagnostico de autenticacao registrado no nome do step"
+
+      - name: "PROBE ROTAS: r0=${{ steps.probe.outputs.r0_nome }}=${{ steps.probe.outputs.r0_status }}(${{ steps.probe.outputs.r0_erro }}) r1=${{ steps.probe.outputs.r1_nome }}=${{ steps.probe.outputs.r1_status }}(${{ steps.probe.outputs.r1_erro }}) r2=${{ steps.probe.outputs.r2_nome }}=${{ steps.probe.outputs.r2_status }}(${{ steps.probe.outputs.r2_erro }}) r3=${{ steps.probe.outputs.r3_nome }}=${{ steps.probe.outputs.r3_status }}(${{ steps.probe.outputs.r3_erro }})"
+        if: always()
+        run: echo "rotas registradas no nome do step"
 
       # Cada diagnóstico vira um step nomeado: o resultado fica legível pela
       # API de jobs sem precisar baixar logs (o sandbox nao tem acesso a eles).
@@ -59,12 +63,16 @@ jobs:
         if: steps.probe.outputs.exit_code == '5'
         run: exit 1
 
+      - name: "DIAGNOSTICO: ROTEAMENTO DO CHAT (exit 7)"
+        if: steps.probe.outputs.exit_code == '7'
+        run: exit 1
+
       - name: "DIAGNOSTICO: RESPOSTA INESPERADA (exit 6)"
         if: steps.probe.outputs.exit_code == '6'
         run: exit 1
 
       - name: "DIAGNOSTICO: CODIGO DESCONHECIDO"
-        if: ${{ !contains(fromJSON('["0","2","3","4","5","6"]'), steps.probe.outputs.exit_code) }}
+        if: ${{ !contains(fromJSON('["0","2","3","4","5","6","7"]'), steps.probe.outputs.exit_code) }}
         run: |
           echo "codigo=${{ steps.probe.outputs.exit_code }}"
           exit 1
