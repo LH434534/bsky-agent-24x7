@@ -32,6 +32,15 @@ env:
   OLLAMA_FALLBACKS: qwen2.5:7b-instruct qwen2.5:3b-instruct llama3.2:3b
   OLLAMA_HOST:  http://localhost:11434
 
+  # ── DMs ────────────────────────────────────────────────────────────────
+  # BOT_DM_REPLY=1 liga o módulo, mas BOT_DM_SHADOW=1 mantém SOMENTE LEITURA:
+  # ele lê, aplica as 20 camadas anti-spam e calcula a resposta, mas NUNCA
+  # chama sendMessage. Para envio real, troque SHADOW para "0" (ver docs/DM.md).
+  # Duas chaves separadas existem para que um typo não dispare mensagens.
+  BOT_DM_REPLY: "1"
+  BOT_DM_SHADOW: "1"
+  DM_DISCLOSURE: "1"
+
 jobs:
   bot:
     runs-on: ubuntu-latest        # runner público gratuito; 14B pode cair para 7B/3B

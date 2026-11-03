@@ -147,6 +147,15 @@ def cmd_run(a) -> None:
     print("  ctrl-c para parar\n")
     H = handlers(acts)
 
+    # DMs ficam no heartbeat (ver gh_runner.py): fora do sorteio de ações,
+    # com throttle de 15 min e guard anti-spam fail-closed.
+    try:
+        from core.dm import make_heartbeat
+        dm_heartbeat = make_heartbeat(bsky, brain, interval_min=15.0)
+    except Exception as e:
+        print(f"  dm: indisponivel ({type(e).__name__}) — seguindo sem DMs")
+        dm_heartbeat = lambda: None
+
     def wrap(fn):
         def _f() -> bool:
             r = bool(fn())
@@ -164,6 +173,7 @@ def cmd_run(a) -> None:
             on_flush=flush,
             social=S,
             growth=G,
+            heartbeat=dm_heartbeat,
         ).run()
     finally:
         guard.save()

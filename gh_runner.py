@@ -219,6 +219,19 @@ def main() -> int:
          "visit": acts.do_visit, "seek": acts.do_seek, "measure": acts.do_measure,
          "image": acts.do_image}
 
+    # DMs: NÃO entra no sorteio de ações (o motor poderia escolher 50x por
+    # minuto). Vai no heartbeat, que core/autonomy.py chama 1x por step
+    # dentro de try/except, com throttle interno de 15 min. O guard limita a
+    # 3 respostas/24h — mesmo que o heartbeat dispare mil vezes, o teto vale.
+    # Padrão: BOT_DM_REPLY=0 (desligado). Ver docs/DM.md.
+    try:
+        from core.dm import make_heartbeat
+        dm_heartbeat = make_heartbeat(bsky, brain, interval_min=15.0)
+        log("dm: modulo carregado (fail-closed, shadow por padrao)")
+    except Exception as e:
+        log(f"dm: modulo indisponivel ({type(e).__name__}) — seguindo sem DMs")
+        dm_heartbeat = lambda: None
+
     if os.environ.get("TEST_FORCE_ACTIONS", "").lower() in ("1", "true", "yes"):
         log("modo teste ativo: uma curtida e uma publicação")
         acts.do_like()
@@ -272,7 +285,7 @@ def main() -> int:
         adaptive=AD,
         immune=IM,
         growth=G,
-        heartbeat=lambda: None,
+        heartbeat=dm_heartbeat,
     )
 
     try:

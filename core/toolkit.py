@@ -199,8 +199,16 @@ def prepare_post(text: str, langs: Optional[List[str]] = None) -> Tuple[str, Lis
         # 3 sinais de degeneração: quase sem palavras; perda de >40% do
         # conteúdo; ou resíduo de pontuação/marcador no início ("Bom,!. ...").
         perda = (1 - len(palavras_depois) / len(palavras_antes)) if palavras_antes else 0.0
+        # `choose()` depende de um bucket de 5 min: perfis diferentes aplicam
+        # edições diferentes. Uns removiam 81% das palavras (pegos por `perda`),
+        # outros só 24% mas deixavam o resíduo "Bom,!. resto..." — o teste
+        # oscilava conforme a hora. Detectar a PONTUAÇÃO ÓRFÃ, não só a perda.
+        # Qualquer par de sinais consecutivos (",!.", ", .", "!?") é resíduo
+        # de um trecho removido; não existe em texto natural ("E você, o que?").
+        residuo = bool(re.search(r"[,.;:!?]\s*[,.;:!?]", final))
         comeco_quebrado = bool(re.match(r"^[\W_]{0,12}[,.;:!?]", final))
-        degenerou = (len(palavras_depois) < 2 or perda > 0.40 or comeco_quebrado)
+        degenerou = (len(palavras_depois) < 2 or perda > 0.40
+                     or residuo or comeco_quebrado)
         if degenerou:
             log.warning("edições humanas removeram quase todo o conteúdo — revertidas")
             final = clean

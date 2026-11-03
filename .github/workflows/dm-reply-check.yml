@@ -1,0 +1,54 @@
+name: dm-reply-check
+
+# Valida o módulo de DMs SEM ENVIAR NADA.
+# Roda a suíte das 20 camadas + um probe real em SHADOW com a App Password.
+# Critério de aceitação: sendMessage nunca é chamado.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: 1/3 self-test das 20 camadas anti-spam
+        run: python scripts/dm_selftest.py
+
+      - name: 2/3 guard de segredo (estado de DM nao vaza texto)
+        run: python scripts/secret_gate.py --repo .
+
+      - name: 3/3 probe real em SHADOW (zero envios)
+        id: shadow
+        env:
+          BSKY_HANDLE:       ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+          BSKY_PDS:          https://bsky.social
+        run: |
+          set +e
+          python scripts/dm_shadow_probe.py
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: "SHADOW: status=${{ steps.shadow.outputs.dm_status }} convos=${{ steps.shadow.outputs.convos }} bloqueadas=${{ steps.shadow.outputs.bloqueadas }} teria_enviado=${{ steps.shadow.outputs.teria_enviado }} ENVIADAS=${{ steps.shadow.outputs.enviadas }} send_calls=${{ steps.shadow.outputs.send_calls }}"
+        if: always()
+        run: echo "resumo registrado no nome do step"
+
+      - name: "DIAGNOSTICO: SHADOW_OK (zero mensagens enviadas)"
+        if: steps.shadow.outputs.exit_code == '0'
+        run: echo "modulo validado ponta a ponta"
+
+      - name: "DIAGNOSTICO: FALHA (secret, rede ou envio indevido)"
+        if: steps.shadow.outputs.exit_code != '0'
+        run: exit 1
