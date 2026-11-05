@@ -80,18 +80,34 @@ jobs:
           python scripts/security_gate.py --repo .
           python scripts/secret_gate.py --repo .
 
+      # Os logs de job são 403 neste sandbox, então o resultado sai em STEPS
+      # nomeados: a API de jobs mostra qual deles rodou, sem precisar de log.
       - name: 9/12 clima real no runner (informativo, não falha)
+        id: clima
         run: |
+          TEM=$(python - <<'PY'
+          from core.context import fetch_weather
+          print("1" if fetch_weather(timeout=6) else "0")
+          PY
+          )
+          echo "tem_clima=$TEM" >> "$GITHUB_OUTPUT"
           python - <<'PY'
           from core.context import fetch_weather, observe, grounding, guard
           w = fetch_weather(timeout=6)
-          print("Open-Meteo:", "DADOS REAIS " + str(w) if w else "BLOQUEADO/INDISPONIVEL -> modo conservador")
+          print("Open-Meteo:", "DADOS REAIS" if w else "BLOQUEADO -> modo conservador")
           o = observe()
           print("observacao:", o.resumo())
-          print("grounding:", grounding(o).replace("\n", " | ")[:400])
           print("guard('ta chovendo'):", guard("ta chovendo", o)[0])
           print("guard('o cafe saiu bom'):", guard("o cafe saiu bom hoje", o)[0])
           PY
+
+      - name: "CLIMA: Open-Meteo respondeu - BOT_WEATHER=1 pode ser ligado"
+        if: steps.clima.outputs.tem_clima == '1'
+        run: echo ok
+
+      - name: "CLIMA: bloqueado/indisponivel - modo conservador em vigor"
+        if: steps.clima.outputs.tem_clima == '0'
+        run: echo ok
 
       - name: 10/12 modo assistido / cortex continua 0 ações
         run: BOT_CORTEX_ASSIST=1 python scripts/cortex_runner_probe.py
