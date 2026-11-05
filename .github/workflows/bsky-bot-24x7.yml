@@ -51,6 +51,18 @@ env:
   BOT_CORTEX_SHADOW: "1"
   BOT_CORTEX_ASSIST: "0"
 
+  # ── CONTEXTO + PERSONALIDADES ───────────────────────────────────────────
+  # BOT_CONTEXT=1 ancora o texto na hora/dia/estacao reais e BARRA qualquer
+  # afirmacao de clima sem observacao confirmada. BOT_WEATHER=0 (default) =
+  # modo conservador, sem chamada de rede nova. Se quiser clima real, ponha
+  # "1" e libere api.open-meteo.com:443 na politica de saida.
+  # BOT_PERSONAS=1 escolhe um arquétipo de voz estavel por dia (6 opcoes).
+  BOT_CONTEXT: "1"
+  BOT_WEATHER: "0"
+  BOT_PERSONAS: "1"
+  BOT_TZ: "America/Sao_Paulo"
+  TZ_OFFSET: "-3"
+
 jobs:
   bot:
     runs-on: ubuntu-latest        # runner público gratuito; 14B pode cair para 7B/3B
@@ -149,7 +161,17 @@ jobs:
           git rm --cached -f data/session.json 2>/dev/null || true
           # Defesa em profundidade: .gitignore pode falhar ou ser apagado.
           # Nunca deixar um JWT chegar ao push do branch público.
-          if git diff --cached --name-only | grep -Ei '(session\.json|\.jwt$|\.env$)'; then
+          #
+          # BUG CORRIGIDO (causa de #166/#167/#168/#170 falharem aqui):
+          # `git rm --cached` staged uma DELECAO de data/session.json, e
+          # `git diff --cached --name-only` lista esse caminho. O grep abaixo
+          # casava com a propria remocao e abortava o push — deixando o
+          # arquivo versionado no remoto. Agora checamos se o arquivo AINDA
+          # esta no indice, e ignoramos delecoes no diff (--diff-filter=ACMRT).
+          if git ls-files --error-unmatch data/session.json >/dev/null 2>&1; then
+            echo 'ERRO: session.json ainda no indice — abortando push'; exit 1
+          fi
+          if git diff --cached --name-only --diff-filter=ACMRT | grep -Ei '(session\.json|\.jwt$|\.env$|credentials)'; then
             echo 'ERRO: segredo seria commitado — abortando push'; exit 1
           fi
           if ! git diff --cached --quiet; then

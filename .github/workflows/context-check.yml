@@ -1,0 +1,113 @@
+name: context-check
+
+# Valida a ancoragem na realidade + os arquétipos de voz SEM postar nada,
+# SEM credencial do Bluesky e SEM chamar nenhum LLM.
+#
+# Criterio de aceitacao: nenhum texto que contradiga hora/dia/estacao/clima
+# observados chega ao createRecord; as suítes anteriores continuam verdes.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'core/context.py'
+      - 'core/personas.py'
+      - 'core/brain.py'
+      - 'core/persona.py'
+      - 'core/actions.py'
+      - 'core/toolkit.py'
+      - 'gh_runner.py'
+      - 'main.py'
+      - 'scripts/context_selftest.py'
+      - 'scripts/personas_selftest.py'
+      - 'scripts/context_integration.py'
+      - 'scripts/human_stability.py'
+      - '.github/workflows/context-check.yml'
+      - '.github/workflows/bsky-bot-24x7.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      BOT_CONTEXT: "1"
+      BOT_WEATHER: "0"
+      BOT_PERSONAS: "1"
+      BOT_TZ: "America/Sao_Paulo"
+      TZ_OFFSET: "-3"
+    steps:
+      - name: 0/12 checkout
+        uses: actions/checkout@v4
+
+      - name: 1/12 python 3.11 (mesma do workflow principal)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 2/12 dependências reais
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 3/12 coerência com a realidade (context_selftest)
+        run: python scripts/context_selftest.py
+
+      - name: 4/12 arquétipos de voz (personas_selftest)
+        run: python scripts/personas_selftest.py
+
+      - name: "5/12 prova - post incoerente nao chega ao createRecord"
+        run: python scripts/context_integration.py
+
+      - name: 6/12 estabilidade dos 576 perfis (sem flakiness de relógio)
+        run: python scripts/human_stability.py
+
+      - name: 7/12 regressão completa das camadas anteriores
+        run: |
+          python scripts/toolkit_selftest.py
+          python scripts/toolkit_integration.py
+          python scripts/human_selftest.py
+          python scripts/viral_selftest.py
+          python scripts/dm_selftest.py
+          python scripts/cortex_selftest.py
+          python scripts/gate_selftest.py
+          python scripts/resilience_selftest.py
+
+      - name: 8/12 gates de segurança do próprio repo
+        run: |
+          python scripts/security_gate.py --repo .
+          python scripts/secret_gate.py --repo .
+
+      - name: 9/12 clima real no runner (informativo, não falha)
+        run: |
+          python - <<'PY'
+          from core.context import fetch_weather, observe, grounding, guard
+          w = fetch_weather(timeout=6)
+          print("Open-Meteo:", "DADOS REAIS " + str(w) if w else "BLOQUEADO/INDISPONIVEL -> modo conservador")
+          o = observe()
+          print("observacao:", o.resumo())
+          print("grounding:", grounding(o).replace("\n", " | ")[:400])
+          print("guard('ta chovendo'):", guard("ta chovendo", o)[0])
+          print("guard('o cafe saiu bom'):", guard("o cafe saiu bom hoje", o)[0])
+          PY
+
+      - name: 10/12 modo assistido / cortex continua 0 ações
+        run: BOT_CORTEX_ASSIST=1 python scripts/cortex_runner_probe.py
+
+      - name: 11/12 compilação de todos os módulos
+        run: python -m compileall -q core scripts gh_runner.py main.py
+
+      - name: 12/12 YAML válido
+        run: |
+          python - <<'PY'
+          import yaml, glob
+          for f in glob.glob(".github/workflows/*.yml"):
+              yaml.safe_load(open(f, encoding="utf-8").read())
+              print("OK", f)
+          PY
+
+      - name: "CONTEXTO: camadas validadas, 0 posts, 0 rede nova"
+        if: always()
+        run: echo "context-check concluido"

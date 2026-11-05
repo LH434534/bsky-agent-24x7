@@ -158,7 +158,21 @@ def main() -> int:
         adaptive=AD)
     guard.load()
 
-    brain = Brain()
+    # Personalidade do dia: MESMA pessoa, tom diferente, estável por 24 h.
+    # BOT_PERSONAS=0 volta ao DEFAULT sem tocar em mais nada.
+    try:
+        from core.personas import persona_do_dia
+        _P = persona_do_dia()
+        brain = Brain(persona=_P)
+        log(f"personalidade do dia: {getattr(_P, 'titulo', 'padrão')}")
+    except Exception as e:
+        brain = Brain()
+        log(f"personalidade: padrão ({type(e).__name__})")
+    try:
+        from core.context import observe as _observe
+        log(f"contexto: {_observe().resumo()}")
+    except Exception as e:
+        log(f"contexto: indisponível ({type(e).__name__})")
     mem = Memory(DATA / "memory.db")
     prior = mem.recent_texts(300)
     if prior:

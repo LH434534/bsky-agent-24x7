@@ -81,7 +81,11 @@ def build(tz_offset: int = -3, queries: list | None = None,
         state_file=DATA / "spam_state.json")
     guard.load()
 
-    brain = Brain()
+    try:
+        from core.personas import persona_do_dia
+        brain = Brain(persona=persona_do_dia())
+    except Exception:
+        brain = Brain()
     mem = Memory(DATA / "memory.db")
 
     # feed the offline brain with what we already said

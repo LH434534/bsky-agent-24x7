@@ -13,11 +13,19 @@ from .antispam import SpamGuard
 from .brain import Brain, reply_relevant
 from .memory import Memory
 
+try:
+    from . import context as ctx
+except Exception:                      # degradação: sem módulo, comportamento antigo
+    ctx = None
+
 log = logging.getLogger("actions")
 
+# "clima"/"chuva"/"calor" saíram daqui: o bot sortear esses temas sem observar
+# nada era a origem de "tá sol e ele posta que tá chovendo". Com clima
+# confirmado (BOT_WEATHER=1) core/context.py libera os tópicos de volta.
 DEFAULT_QUERIES = [
     "futebol", "jogos", "série", "música", "filme", "anime", "futebol brasileiro",
-    "clima", "chuva", "calor", "final de semana", "sexta", "domingo",
+    "final de semana", "sexta", "domingo",
     "faculdade", "escola", "prova", "trabalho", "estágio", "emprego",
     "celular", "android", "iphone", "internet", "wifi", "app",
     "comida", "lanche", "café", "pizza", "hambúrguer", "churrasco",
@@ -48,16 +56,29 @@ class Actions:
 
     # ─────────────────────────────────────────────────────────────── helpers
     def _topic(self) -> str:
-        """Assunto vem dos interesses dele (que evoluíram), não de lista fixa."""
+        """Assunto vem dos interesses dele (que evoluíram), não de lista fixa.
+
+        Sem clima observado, um tópico climático sorteado é trocado por algo
+        que não depende de informação que o bot não tem. Rede de segurança:
+        mesmo que escape, `_safe()` barra o texto antes de publicar.
+        """
         if self.A is not None:
             t = self.A.next_topic(self.persona_topics)
             self.m.use_topic(t)
-            return t
+            return self._tema_seguro(t)
         pool = self.persona_topics or self.brain.pick_topics(3)
         if not pool:
             return "automation"
         t = random.choice(pool)
         self.m.use_topic(t)
+        return self._tema_seguro(t)
+
+    def _tema_seguro(self, t: str) -> str:
+        if ctx is None or ctx.clima_topicos_permitidos():
+            return t
+        if str(t).strip().lower() in ctx.TOPICOS_CLIMA:
+            log.info("tópico climático '%s' trocado (sem observação confirmada)", t)
+            return "o que eu tava fazendo agora"
         return t
 
     def _mood(self) -> str:
@@ -134,13 +155,37 @@ class Actions:
         return True
 
     def _safe(self, text: str) -> Optional[str]:
-        for _ in range(3):
+        """Antispam + coerência com a realidade observada.
+
+        Ponto ÚNICO por onde todo post, reply e parte de thread passa antes de
+        `b.post()`. Se as 3 tentativas ainda contradizerem os fatos, devolve
+        None — e o bot simplesmente NÃO publica neste ciclo.
+        """
+        dica = ""
+        for tentativa in range(3):
             ok, why = self.g.screen(text)
+            issues = []
+            if ok and ctx is not None:
+                coerente, issues = ctx.guard(text)
+                if not coerente:
+                    ok = False
+                    why = "contexto: " + ", ".join(i["codigo"] for i in issues)
             if ok:
                 return text
-            log.info("screen rejected (%s): %.60s", why, text)
-            text = self.brain.write_post(self._topic(), style=random.choice(
-                ["algo do seu dia", "uma opinião", "uma pergunta", "algo que você curte"]))
+            log.info("rascunho %d rejeitado (%s): %.60s", tentativa + 1, why, text)
+            dica = ctx.feedback(issues) if (ctx is not None and issues) else ""
+            try:
+                text = self.brain.write_post(
+                    self._topic(),
+                    style=random.choice(["algo do seu dia", "uma opinião",
+                                         "uma pergunta", "algo que você curte"]),
+                    extra=dica)
+            except Exception as e:
+                log.warning("regeneração falhou: %s", str(e)[:100])
+                return None
+        if ctx is not None:
+            self.m.log_action("post", ok=False,
+                              err="coerência: nenhuma tentativa consistente")
         return None
 
     def _post_text(self, text: str, with_image: bool = False) -> bool:
@@ -152,6 +197,16 @@ class Actions:
         if self.g.near_dup(clean):
             self.m.log_action("post", ok=False, err="near-dup")
             return False
+        # Defesa em profundidade: mesmo que `_safe` seja alterado no futuro,
+        # nada incoerente chega à chamada de publicação.
+        if ctx is not None:
+            coerente, issues = ctx.guard(clean)
+            if not coerente:
+                self.m.log_action(
+                    "post", ok=False,
+                    err="contexto: " + ", ".join(i["codigo"] for i in issues))
+                log.info("post barrado no gate final: %s", clean[:70])
+                return False
 
         imagens = None
         if with_image and self.I is not None and self.I.available():

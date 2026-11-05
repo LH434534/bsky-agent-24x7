@@ -324,12 +324,26 @@ class Brain:
         return self.offline
 
     def gen(self, instruction: str, *, context: str = "", max_tokens: int = 220,
-            temperature: float = 0.9, system: Optional[str] = None) -> str:
-        """Generate text; falls through providers, ends at the offline engine."""
+            temperature: float = 0.9, system: Optional[str] = None,
+            grounded: bool = True) -> str:
+        """Generate text; falls through providers, ends at the offline engine.
+
+        `grounded=True` acrescenta os fatos observados (hora, dia, estação e
+        clima SOMENTE se confirmado) ao system prompt. É o que impede o modelo
+        de inventar "tá chovendo" num dia de sol. Os prompts de decisão
+        (SIM/NAO) passam grounded=False para não poluir a resposta curta.
+        """
         user = instruction
         if context:
             user = f"Context:\n{context}\n\nTask:\n{instruction}"
         sys_prompt = system or self.persona
+        if grounded:
+            try:
+                from . import context as _ctx
+                if _ctx.ENABLED:
+                    sys_prompt = sys_prompt + "\n\n" + _ctx.grounding(_ctx.observe())
+            except Exception as e:
+                log.debug("grounding indisponível: %s", str(e)[:100])
         order = [self.pick(), self.offline]
         for p in order:
             try:
@@ -420,13 +434,15 @@ class Brain:
         raw = self.gen(
             f"@{handle}\nBio: {bio or '(sem bio)'}\n"
             f"Posts recentes:\n" + "\n".join(f"- {p[:160]}" for p in posts[:3]),
-            system=self.P.follow, max_tokens=6, temperature=0.3).upper()
+            system=self.P.follow, max_tokens=6, temperature=0.3,
+            grounded=False).upper()
         return "SIM" in raw[:12] or "YES" in raw[:12]
 
     def judge_reply(self, post_text: str) -> bool:
         if self.pick() is self.offline:
             return self.offline.judge_reply(post_text)
         raw = self.gen(f"Post:\n\"{post_text}\"",
-                       system=self.P.reply_worth, max_tokens=6, temperature=0.3).upper()
+                       system=self.P.reply_worth, max_tokens=6, temperature=0.3,
+                       grounded=False).upper()
         return ("SIM" in raw[:12] or "YES" in raw[:12]) and "NAO" not in raw[:12] \
             and "NOT" not in raw[:12]

@@ -212,16 +212,24 @@ def prepare_post(text: str, langs: Optional[List[str]] = None) -> Tuple[str, Lis
         # de um trecho removido; não existe em texto natural ("E você, o que?").
         residuo = bool(re.search(r"[,.;:!?]\s*[,.;:!?]", final))
         comeco_quebrado = bool(re.match(r"^[\W_]{0,12}[,.;:!?]", final))
-        # Um texto DENSO em cliches ja teve os cliches removidos por
-        # strip_ai_tells. Se o perfil ainda comeu >10% das palavras, ele
-        # removou CONTEUDO, nao cliche — mesmo sem deixar pontuacao orfa.
-        # Era exatamente o caso do perfil H0360: 21 -> 15 palavras (28,6%),
-        # abaixo do limiar antigo de 40%, e o CI oscilava com a hora.
-        # Para texto normal sem cliches mantemos o limiar original de 40%
-        # para nao desfazer edições legitimas.
-        denso_cliches = int(hm.get("ai_tells_antes", 0) or 0) >= 3
-        limiar_perda = 0.10 if denso_cliches else 0.40
-        degenerou = (len(palavras_depois) < 2 or perda > limiar_perda
+        # Um texto DENSO em clichês já teve os clichês removidos. Se o perfil
+        # ainda comeu palavras, ele removeu CONTEÚDO, não clichê.
+        #
+        # BUG RAIZ (achado ao varrer os 576 perfis): `hm["ai_tells_antes"]`
+        # NÃO EXISTE no meta devolvido por human.apply — o campo é None.
+        # Então o antigo `limiar_perda = 0.10` nunca era aplicado e 36 dos
+        # 576 perfis (ex.: H0240, 21 -> 19 palavras = 9,5%) escapavam da
+        # reversão. O CI oscilava a cada bucket de 5 min conforme o perfil
+        # sorteado. Agora medimos a densidade no texto ORIGINAL, antes do
+        # strip_ai_tells, que é onde os clichês realmente estão.
+        try:
+            denso_cliches = ai_tell_score(text) >= 3
+        except Exception:
+            denso_cliches = int(hm.get("ai_tells_antes", 0) or 0) >= 3
+        # 5% tolera uma contração legítima ("você está" -> "você tá" = 1/21)
+        # mas barra 2 palavras perdidas em 21 (9,5%). Texto normal mantém 40%.
+        limiar_perda = 0.05 if denso_cliches else 0.40
+        degenerou = (len(palavras_depois) < 2 or perda >= limiar_perda
                      or residuo or comeco_quebrado)
         if degenerou:
             log.warning("edições humanas removeram quase todo o conteúdo — revertidas")
