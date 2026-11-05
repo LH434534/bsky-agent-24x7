@@ -1,0 +1,18 @@
+=== contenção: varredura de sessões vazadas em branches públicos ===
+  repo: LH434534/bsky-agent-24x7 (público) | PDS: https://bsky.social
+  tokens: NUNCA exibidos
+
+  [main] HTTP 404 — sem arquivo ou branch inexistente
+  [state] arquivo presente | leitura anônima = False
+  [state] access_len=357 refresh_len=384
+  [state] getSession(access) -> HTTP 400
+  [state] deleteSession via refresh -> HTTP 200
+  [state] refresh pós-revogação -> HTTP 400
+
+  [authdiag] HTTP 404 — sem arquivo ou branch inexistente
+=== resumo ===
+  main       sem_arquivo
+  state      revogado
+  authdiag   sem_arquivo
+REVOGADO: sessões vazadas invalidadas e confirmadas
+rc=0
