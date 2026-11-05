@@ -157,7 +157,12 @@ def main() -> int:
     gr = (ROOT / "gh_runner.py").read_text(encoding="utf-8")
     mp = (ROOT / "main.py").read_text(encoding="utf-8")
     check("gh_runner usa heartbeat composto", "heartbeat=heartbeat," in gr)
-    check("gh_runner isola DMs e cortex", "for fn in (dm_heartbeat, cortex_heartbeat)" in gr)
+    # O heartbeat agora inclui também a avaliação da bio. O que importa é
+    # que TODOS os subsistemas continuem dentro do mesmo loop isolado por
+    # try/except — nenhum deles pode derrubar o motor.
+    check("gh_runner isola DMs, cortex e bio",
+          "for fn in (dm_heartbeat, cortex_heartbeat, bio_heartbeat):" in gr
+          and "except Exception" in gr)
     check("main.py usa heartbeat composto", "heartbeat=heartbeat," in mp)
     check("nenhum .execute() no runner", "cortex.execute" not in gr and ".execute()" not in gr)
     check("nenhum .execute() no main", "cortex.execute" not in mp)

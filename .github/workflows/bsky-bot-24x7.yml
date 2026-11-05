@@ -71,11 +71,13 @@ env:
   # NAO promete multiplicador e NAO adiciona nenhuma interacao. O system
   # prompt proibe CTA, urgencia fabricada, numero inventado e autoridade falsa.
   # BOT_BIO=1 faz o bot AVALIAR a descricao do perfil e DECIDIR se troca.
-  # BOT_BIO_APPLY=0 = DRY-RUN: decide e registra, mas NAO grava. A escrita
-  # (merge com swapRecord + rollback) so acontece com APPLY=1.
+  # APPLY=1 foi ligado DEPOIS de `profile_probe.py` confirmar getRecord=200 no
+  # runner. A escrita e MERGE com swapRecord=CID lido, cooldown 30d, teto
+  # 1/30d, no minimo 10 posts medidos e checkpoint para rollback. Com bio ja
+  # coerente a decisao e NAO MEXER. Para voltar a observar sem gravar: APPLY=0.
   BOT_INFLUENCE: "1"
   BOT_BIO: "1"
-  BOT_BIO_APPLY: "0"
+  BOT_BIO_APPLY: "1"
   BIO_MIN_DAYS: "30"
   BIO_MIN_POSTS: "10"
   BIO_MAX_PER_30D: "1"
