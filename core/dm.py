@@ -123,10 +123,17 @@ class Config:
                 return float(os.environ.get(k, str(d)))
             except Exception:
                 return d
+        shadow = bi("BOT_DM_SHADOW", 1)
+        disclosure = bi("DM_DISCLOSURE", 1)
+        # Fail-closed: resposta automática SEM identificação não é permitida.
+        # Se alguém desligar o disclosure junto com o shadow, voltamos a shadow
+        # em vez de mandar mensagem anônima para terceiros.
+        if not shadow and not disclosure:
+            shadow = True
         return cls(
             enabled=bi("BOT_DM_REPLY", 0),
-            shadow=bi("BOT_DM_SHADOW", 1),
-            disclosure=bi("DM_DISCLOSURE", 1),
+            shadow=shadow,
+            disclosure=disclosure,
             max_per_sender_24h=int(num("DM_MAX_PER_SENDER_24H", 1)),
             max_per_sender_7d=int(num("DM_MAX_PER_SENDER_7D", 2)),
             max_global_24h=int(num("DM_MAX_GLOBAL_24H", 3)),

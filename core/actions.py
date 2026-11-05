@@ -117,6 +117,19 @@ class Actions:
                 bits.append(vh)
         except Exception as e:
             log.warning("dica viral indisponível (%s) — mantendo hint original", e)
+        # Autoridade orgânica: mede os próprios posts e os outcomes reais.
+        # Zero chamada de LLM, zero interação nova. Nunca pede engajamento e
+        # nunca afirma multiplicador de crescimento — ver core/influence.py.
+        try:
+            from core.influence import capital_social, tendencia, influence_hint
+            historico = self.m.recent_texts(30) if self.m is not None else []
+            outcomes = getattr(self.G, "outcomes", []) if self.G else []
+            cap = capital_social(historico, outcomes=outcomes)
+            ih = influence_hint(cap, tendencia(outcomes))
+            if ih:
+                bits.append(ih)
+        except Exception as e:
+            log.warning("dica de autoridade indisponível (%s)", str(e)[:100])
         if not bits:
             return ""
         return ". ".join(bits) + ". Não force, só incline para esse lado."

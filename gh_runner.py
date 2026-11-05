@@ -261,10 +261,32 @@ def main() -> int:
         log(f"cortex: indisponivel ({type(e).__name__}) — seguindo sem ele")
         cortex_heartbeat = lambda: None
 
+    # BIO: o proprio bot DECIDE se a descricao esta fora do nivel. Avalia a
+    # cada 3 h, fora do sorteio de acoes. BOT_BIO_APPLY=0 mantem DRY-RUN:
+    # decide e registra, mas nao grava nada no perfil publico.
+    try:
+        from core.profile import make_heartbeat as make_bio_heartbeat, descrever as bio_desc
+        bio_heartbeat = make_bio_heartbeat(bsky, mem, G, interval_min=180.0, log=log)
+        log(f"bio: {bio_desc()}")
+    except Exception as e:
+        log(f"bio: indisponivel ({type(e).__name__}) — seguindo sem ela")
+        bio_heartbeat = lambda: None
+
+    # Capital social: medicao dos proprios posts e outcomes, sem projetar
+    # crescimento e sem nenhuma promessa de multiplicador.
+    try:
+        from core.influence import capital_social, tendencia, descrever as inf_desc
+        cap = capital_social(mem.recent_texts(30), outcomes=G.outcomes)
+        log(f"influencia: score={cap['score']} amostras={cap['amostras']} "
+            f"confiavel={cap['confiavel']} tendencia={tendencia(G.outcomes)}")
+        log(f"influencia: {inf_desc()['proibicoes']}")
+    except Exception as e:
+        log(f"influencia: indisponivel ({type(e).__name__})")
+
     def heartbeat():
         # Cada subsistema e isolado: uma excecao em DMs nao impede o cortex,
         # e nenhuma delas chega ao motor (autonomy.py ja usa try/except).
-        for fn in (dm_heartbeat, cortex_heartbeat):
+        for fn in (dm_heartbeat, cortex_heartbeat, bio_heartbeat):
             try:
                 fn()
             except Exception as e:

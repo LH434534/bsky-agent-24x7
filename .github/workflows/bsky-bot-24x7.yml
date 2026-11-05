@@ -33,12 +33,14 @@ env:
   OLLAMA_HOST:  http://localhost:11434
 
   # ── DMs ────────────────────────────────────────────────────────────────
-  # BOT_DM_REPLY=1 liga o módulo, mas BOT_DM_SHADOW=1 mantém SOMENTE LEITURA:
-  # ele lê, aplica as 20 camadas anti-spam e calcula a resposta, mas NUNCA
-  # chama sendMessage. Para envio real, troque SHADOW para "0" (ver docs/DM.md).
-  # Duas chaves separadas existem para que um typo não dispare mensagens.
+  # DMs REATIVAS: so responde quem enviou mensagem primeiro. Nunca inicia
+  # conversa, nunca aceita request, nunca responde em grupo. 20 camadas
+  # anti-spam + opt-out permanente + dedup + cotas (3/conta/24h, 10/7d).
+  # SHADOW=0 foi autorizado explicitamente. DM_DISCLOSURE=1 e OBRIGATORIO:
+  # core/dm.py volta a shadow se alguem desligar o disclosure (fail-closed).
+  # Para desligar: BOT_DM_SHADOW=1. Para silenciar tudo: BOT_DM_REPLY=0.
   BOT_DM_REPLY: "1"
-  BOT_DM_SHADOW: "1"
+  BOT_DM_SHADOW: "0"
   DM_DISCLOSURE: "1"
 
   # ── CORTEX ──────────────────────────────────────────────────────────────
@@ -62,6 +64,21 @@ env:
   BOT_PERSONAS: "1"
   BOT_TZ: "America/Sao_Paulo"
   TZ_OFFSET: "-3"
+
+  # ── AUTORIDADE ORGÂNICA + BIO ──────────────────────────────────────────
+  # BOT_INFLUENCE mede especificidade/clareza/autenticidade/consistencia dos
+  # proprios posts e a tendencia dos outcomes reais. NAO projeta crescimento,
+  # NAO promete multiplicador e NAO adiciona nenhuma interacao. O system
+  # prompt proibe CTA, urgencia fabricada, numero inventado e autoridade falsa.
+  # BOT_BIO=1 faz o bot AVALIAR a descricao do perfil e DECIDIR se troca.
+  # BOT_BIO_APPLY=0 = DRY-RUN: decide e registra, mas NAO grava. A escrita
+  # (merge com swapRecord + rollback) so acontece com APPLY=1.
+  BOT_INFLUENCE: "1"
+  BOT_BIO: "1"
+  BOT_BIO_APPLY: "0"
+  BIO_MIN_DAYS: "30"
+  BIO_MIN_POSTS: "10"
+  BIO_MAX_PER_30D: "1"
 
 jobs:
   bot:

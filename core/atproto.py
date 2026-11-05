@@ -222,8 +222,11 @@ class Bsky:
     # ------------------------------------------------------------------ http
     def _call(self, method: str, nsid: str, *, auth: bool = True, public: bool = False,
               params: Dict[str, Any] | None = None, body: Dict[str, Any] | None = None,
-              retry: int = 4) -> Dict[str, Any]:
-        base = PUBLIC if public else self.pds
+              retry: int = 4, base: str | None = None) -> Dict[str, Any]:
+        # `base` é opcional e usado SÓ pelo leitor/gravador de perfil, quando
+        # o entryway não faz proxy e é preciso falar com o PDS real do didDoc.
+        # Nenhuma chamada existente passa `base` → comportamento idêntico.
+        base = base or (PUBLIC if public else self.pds)
         url = f"{base}/xrpc/{nsid}"
         for attempt in range(retry):
             headers = {}
@@ -492,6 +495,84 @@ class Bsky:
     def profile(self, actor: str) -> Dict[str, Any]:
         return self._call("GET", "app.bsky.actor.getProfile", auth=False, public=True,
                           params={"actor": actor})
+
+    # ── perfil: ler → mesclar → gravar (NUNCA substituir o record) ──────────
+    PROFILE_COLLECTION = "app.bsky.actor.profile"
+    PROFILE_RKEY = "self"
+
+    def pds_real(self) -> str:
+        """PDS real do didDoc, com fallback para o entryway configurado.
+
+        O chat exige proxy e devolve 501 em bsky.social; para `getRecord` o
+        entryway costuma rotear, mas não presumimos — tentamos o PDS real se
+        a primeira chamada falhar. Cache por objeto, zero escrita.
+        """
+        cached = getattr(self, "_pds_real", "")
+        if cached:
+            return cached
+        did = self.did or ""
+        if did.startswith("did:plc:"):
+            try:
+                r = self.s.get(f"https://plc.directory/{did}", timeout=8)
+                if r.status_code == 200:
+                    for srv in (r.json().get("service") or []):
+                        sid = str(srv.get("id") or "")
+                        ep = str(srv.get("serviceEndpoint") or "")
+                        if ep.startswith("https://") and (
+                                "pds" in sid.lower()
+                                or "AtprotoPersonalDataServer" in str(srv.get("type") or "")):
+                            self._pds_real = ep.rstrip("/")
+                            return self._pds_real
+            except Exception as e:
+                log.debug("didDoc indisponível (%s) — usando entryway", type(e).__name__)
+        return self.pds
+
+    def get_profile_record(self) -> Dict[str, Any]:
+        """Devolve {"value": {...}, "cid": "...", "uri": "...", "base": "..."}.
+
+        Leitura autenticada, somente leitura. Tenta o entryway e, se falhar,
+        o PDS real do didDoc. Nenhuma escrita acontece aqui.
+        """
+        did = self.did or self.handle
+        params = {"repo": did, "collection": self.PROFILE_COLLECTION,
+                  "rkey": self.PROFILE_RKEY}
+        last: Exception | None = None
+        for base in dict.fromkeys([self.pds, self.pds_real()]):
+            try:
+                d = self._call("GET", "com.atproto.repo.getRecord", params=params,
+                               base=base, retry=2)
+                d["base"] = base
+                return d
+            except Exception as e:
+                last = e
+                log.debug("getRecord via %s falhou (%s)", base, type(e).__name__)
+        raise ATProtoError(f"getRecord falhou em ambas as rotas: {last}")
+
+    def put_profile_description(self, record: Dict[str, Any], cid: str,
+                                description: str, *, base: str | None = None) -> Dict[str, Any]:
+        """Atualiza SÓ `description`, preservando avatar/banner/nome/labels.
+
+        `swapRecord` = CID lido => se outra pessoa (ou outra sessão) alterou
+        o perfil nesse meio-tempo, a escrita FALHA em vez de apagar a mudança.
+        É um upsert de merge, não um replace — o lexicon exige isso.
+        """
+        novo = dict(record or {})
+        novo["$type"] = self.PROFILE_COLLECTION
+        novo["description"] = description
+        # Remove apenas chaves de controle que não pertencem ao record.
+        for k in ("uri", "cid", "base"):
+            novo.pop(k, None)
+        body = {
+            "repo": self.did or self.handle,
+            "collection": self.PROFILE_COLLECTION,
+            "rkey": self.PROFILE_RKEY,
+            "validate": True,
+            "record": novo,
+        }
+        if cid:
+            body["swapRecord"] = cid       # proteção contra escrita concorrente
+        return self._call("POST", "com.atproto.repo.putRecord", body=body,
+                          base=base, retry=2)
 
     def followers(self, actor: str, limit: int = 50) -> List[Dict[str, Any]]:
         d = self._call("GET", "app.bsky.graph.getFollowers", auth=False, public=True,

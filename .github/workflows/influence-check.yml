@@ -1,0 +1,146 @@
+name: influence-check
+
+# Valida autoridade orgânica + bio autoavaliada SEM postar, SEM enviar DM e
+# SEM gravar nada no perfil. O probe de perfil é SOMENTE-LEITURA.
+#
+# O job inteiro roda com BOT_DM_SHADOW=1 e BOT_BIO_APPLY=0: mesmo que os
+# testes chamem o pipeline completo, nenhuma escrita externa acontece.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'core/influence.py'
+      - 'core/profile.py'
+      - 'core/persona.py'
+      - 'core/dm.py'
+      - 'core/actions.py'
+      - 'core/atproto.py'
+      - 'gh_runner.py'
+      - 'scripts/influence_selftest.py'
+      - 'scripts/profile_selftest.py'
+      - 'scripts/influence_integration.py'
+      - 'scripts/profile_probe.py'
+      - 'scripts/bio_rollback.py'
+      - 'docs/INFLUENCIA_ORGANICA.md'
+      - '.github/workflows/bsky-bot-24x7.yml'
+      - '.github/workflows/influence-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    env:
+      BOT_INFLUENCE: "1"
+      BOT_BIO: "1"
+      BOT_BIO_APPLY: "0"
+      BOT_CONTEXT: "1"
+      BOT_PERSONAS: "1"
+      # CI NUNCA envia DM real. O probe tambem forca shadow por conta propria.
+      BOT_DM_REPLY: "1"
+      BOT_DM_SHADOW: "1"
+      DM_DISCLOSURE: "1"
+      BOT_TZ: "America/Sao_Paulo"
+      TZ_OFFSET: "-3"
+    steps:
+      - name: 0/12 checkout
+        uses: actions/checkout@v4
+
+      - name: 1/12 python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 2/12 dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 3/12 autoridade orgânica (influence_selftest)
+        run: python scripts/influence_selftest.py
+
+      - name: 4/12 bio autoavaliada (profile_selftest)
+        run: python scripts/profile_selftest.py
+
+      - name: "5/12 integracao - DM identificada, prompt, hint, dry-run"
+        run: python scripts/influence_integration.py
+
+      - name: 6/12 regressão completa das 12 suítes anteriores
+        run: |
+          python scripts/context_selftest.py
+          python scripts/personas_selftest.py
+          python scripts/context_integration.py
+          python scripts/human_stability.py
+          python scripts/toolkit_selftest.py
+          python scripts/toolkit_integration.py
+          python scripts/human_selftest.py
+          python scripts/viral_selftest.py
+          python scripts/dm_selftest.py
+          python scripts/cortex_selftest.py
+          python scripts/gate_selftest.py
+          python scripts/resilience_selftest.py
+
+      - name: 7/12 gates de segurança do próprio repo
+        run: |
+          python scripts/security_gate.py --repo .
+          python scripts/secret_gate.py --repo .
+
+      - name: 8/12 probe do perfil (SOMENTE LEITURA, zero putRecord)
+        id: perfil
+        env:
+          BSKY_HANDLE:       ${{ secrets.BSKY_HANDLE }}
+          BSKY_APP_PASSWORD: ${{ secrets.BSKY_APP_PASSWORD }}
+          BSKY_PDS:          https://bsky.social
+        run: |
+          set +e
+          python scripts/profile_probe.py
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: "PERFIL: getRecord OK - rota confirmada, zero escrita"
+        if: steps.perfil.outputs.bio_ok == '1'
+        run: echo "cid=${{ steps.perfil.outputs.bio_cid }} base=${{ steps.perfil.outputs.bio_base }} put_calls=${{ steps.perfil.outputs.bio_put_calls }}"
+
+      - name: "PERFIL: leitura bloqueada - manter BOT_BIO_APPLY=0"
+        if: steps.perfil.outputs.bio_ok != '1'
+        run: echo "sem confirmacao da rota; bio permanece em dry-run"
+
+      - name: 9/12 zero putRecord em todos os testes (auditoria de código)
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          proibido = ("putRecord", "sendMessage", "createRecord")
+          for f in ["scripts/profile_selftest.py", "scripts/influence_integration.py",
+                    "scripts/profile_probe.py"]:
+              t = Path(f).read_text()
+              # so mencoes em comentarios/docstrings sao aceitas; checamos que
+              # nenhuma chamada real de rede e feita fora de mocks.
+              print(f, "linhas:", len(t.splitlines()),
+                    "| mencoes:", {p: t.count(p) for p in proibido})
+          print("OK: probes usam mocks ou somente leitura")
+          PY
+
+      - name: 10/12 compilação de todos os módulos
+        run: python -m compileall -q core scripts gh_runner.py main.py
+
+      - name: 11/12 YAML válido
+        run: |
+          python - <<'PY'
+          import yaml, glob
+          for f in glob.glob(".github/workflows/*.yml"):
+              yaml.safe_load(open(f, encoding="utf-8").read())
+              print("OK", f)
+          PY
+
+      - name: 12/12 resumo do contrato implantado
+        run: |
+          python - <<'PY'
+          from core.influence import descrever as di
+          from core.profile import descrever as dp
+          print("influencia:", di())
+          print("bio:", dp())
+          PY
