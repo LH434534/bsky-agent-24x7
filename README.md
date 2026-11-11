@@ -1,17 +1,15 @@
 # bsky-agent — agente autônomo de Bluesky, à prova de queda
 
-Agente que toca o perfil `@his08.bsky.social` sozinho: posta, responde, segue,
-curte, reposta — 24h por dia, com filtro anti-spam e um sistema de
-auto-reparo + auto-religamento que não depende de ninguém.
+Agente que opera o perfil `@his08.bsky.social`: publica e interage com filtro
+anti-spam, persistência de estado e supervisão com retentativas controladas.
 
 ---
 
 ## 1. Como ligar no GitHub Actions gratuitamente
 
-Este repositório é **público**, então os runners padrão hospedados pelo GitHub
-Actions não consomem minutos pagos. Cada job do GitHub-hosted runner pode durar
-no máximo 6 horas; por isso o workflow usa quatro sessões de aproximadamente
-5h30, em vez de iniciar um novo job a cada 30 minutos.
+O workflow usa GitHub-hosted runners. Cada job pode durar no máximo 6 horas;
+as sessões do agente duram até 5 horas e, quando terminam com sucesso, a cadeia
+inicia a próxima. Dois watchdogs espaçados cobrem falhas.
 
 ### Passo a passo
 
@@ -24,13 +22,18 @@ no máximo 6 horas; por isso o workflow usa quatro sessões de aproximadamente
    | `BSKY_HANDLE` | seu handle, por exemplo `usuario.bsky.social` |
    | `BSKY_APP_PASSWORD` | uma App Password do Bluesky, não sua senha principal |
 
-   No Bluesky, crie a App Password em **Settings → Advanced → App passwords**.
+   No Bluesky, crie a App Password em **Settings → Privacy and Security → App Passwords**.
 4. Vá em **Actions**, selecione `bsky-bot-24x7` e clique em **Enable workflow**
    se ele estiver desativado.
-5. Clique em **Run workflow** uma vez para testar. Depois, o cron inicia as
-   sessões automaticamente nos horários `00:07`, `06:07`, `12:07` e `18:07` UTC.
+5. Clique em **Run workflow** uma vez para testar. Depois, uma cadeia renova as
+   sessões após sucesso; um cron diário rearmador e dois watchdogs executados a
+   cada 15 minutos (em horários alternados) são as camadas de recuperação.
+6. Falhas consecutivas usam backoff de 15 e 30 minutos; após três falhas ou
+   cancelamento manual, a recuperação automática pausa. Corrija a causa e use
+   **Run workflow** para retomar. Uma App Password inválida precisa ser
+   substituída em **Settings → Secrets and variables → Actions**.
 
-6. Na primeira execução, confira no log `brain provider: ollama` e
+7. Na primeira execução, confira no log `brain provider: ollama` e
    `MODELO REAL ATIVO: qwen2.5:14b-instruct`. Se o runner não comportar o 14B,
    o instalador usa automaticamente 7B, 3B ou o motor offline.
 

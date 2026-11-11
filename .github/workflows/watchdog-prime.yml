@@ -2,7 +2,7 @@ name: watchdog-prime
 
 # Segundo supervisor, com cron DESENCONTRADO do watchdog-24x7.
 #
-# watchdog-24x7  → minutos 0,15,30,45
+# watchdog-24x7  → minutos 3,18,33,48
 # watchdog-prime → minutos 7,22,37,52
 #
 # Por que dois: sob carga o scheduler do GitHub atrasa ou pula disparos.
@@ -23,8 +23,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: watchdog-prime
-  cancel-in-progress: true
+  group: watchdog-supervisor   # compartilhado com watchdog-24x7
+  cancel-in-progress: false    # serializa consulta + dispatch
 
 jobs:
   supervise:
@@ -51,6 +51,14 @@ jobs:
 
       - name: "DECISAO: nova sessao disparada"
         if: startsWith(steps.wd.outputs.decision, 'DISPARADO')
+        run: echo ok
+
+      - name: "DECISAO: aguardando backoff"
+        if: startsWith(steps.wd.outputs.decision, 'AGUARDANDO')
+        run: echo ok
+
+      - name: "DECISAO: pausa para intervenção"
+        if: startsWith(steps.wd.outputs.decision, 'PAUSADO')
         run: echo ok
 
       - name: "DECISAO: ERRO no supervisor"

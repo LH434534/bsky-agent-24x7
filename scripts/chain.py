@@ -2,20 +2,19 @@
 """
 chain.py — renova a sessão do bot sem depender do scheduler do GitHub.
 
-Ideia: cada execução do workflow, AO TERMINAR (if: always()), dispara a
-próxima via workflow_dispatch. Assim a cadeia se sustenta sozinha:
-não depende de cron, não deixa os ~30 min de buraco entre jobs de 330 min,
-e reinicia automaticamente mesmo quando o job cai no meio.
+Ideia: cada execução bem-sucedida do workflow, AO TERMINAR (if: always()),
+dispara a próxima via workflow_dispatch. Falhas não se autoencadeiam; o
+watchdog aplica backoff e circuit breaker antes de tentar recuperação.
 
-O watchdog (a cada 15 min) continua como SEGUNDA camada, cobrindo o caso de
-este step final falhar. O cron original fica como TERCEIRA camada.
+O watchdog (a cada 15 min, com um segundo cron desencontrado) cobre falhas de
+execução e deste step. O cron diário fica como última camada de rearmamento.
 
 Guardrails (importante — um loop sem freio queimaria minutos/atrasaria tudo):
   • kill switch: vars.BOT_CHAIN = "0" para a cadeia imediatamente
   • exclui o PRÓPRIO run da checagem de "já tem sessão ativa"
     (senão nunca dispararia, pois ele ainda está in_progress)
-  • não dispara se o run foi cancelado manualmente
-  • falha instantânea (< 120 s) NÃO dispara: evita storm; o watchdog cobre
+  • não dispara se o run falhou ou foi cancelado manualmente
+  • encadeia somente após sucesso; o watchdog controla retries e pausas
   • checa in_progress E queued antes de disparar (sem bots duplicados)
   • dry-run para testar a decisão sem criar runs
 
@@ -44,7 +43,6 @@ JOB_STATUS = os.environ.get("CHAIN_JOB_STATUS", "")
 ENABLED = os.environ.get("CHAIN_ENABLED", "1")
 DRY = os.environ.get("CHAIN_DRY_RUN") == "1"
 PROBE = os.environ.get("CHAIN_PROBE") == "1"
-MIN_SECONDS = 120
 WF_DEFAULT = "bsky-bot-24x7.yml"
 
 DECISION = ""
@@ -121,16 +119,11 @@ def main() -> int:
         emit("CANCELADO: run cancelado manualmente — cadeia interrompida")
         return 0
 
-    # Anti-storm: falha instantânea não renova; o watchdog de 15 min cobre.
-    if not PROBE:
-        try:
-            start = float(os.environ.get("CHAIN_START_TS", "0"))
-            dur = time.time() - start if start else 9999
-        except ValueError:
-            dur = 9999
-        if JOB_STATUS not in ("success", "") and dur < MIN_SECONDS:
-            emit(f"AGUARDANDO: falha em {dur:.0f}s — watchdog retoma em <=15 min")
-            return 0
+    # Qualquer falha para a cadeia: somente o watchdog tenta recuperar, com
+    # backoff exponencial e circuit breaker para falhas persistentes.
+    if not PROBE and JOB_STATUS not in ("success", ""):
+        emit(f"AGUARDANDO: run terminou com status {JOB_STATUS}; watchdog controla a retomada")
+        return 0
 
     # Modo probe: cadeia finita para prova real sem loop infinito.
     if a.gen is not None and a.gen >= a.max_gen:
@@ -157,12 +150,24 @@ def main() -> int:
 
     st, _ = call("POST", f"/repos/{REPO}/actions/workflows/{a.workflow}/dispatches", body)
     # Falha transitória da API não deve depender do cron (pouco confiável):
-    # tenta de novo dentro do próprio step, com teto de tempo no workflow.
+    # consulta runs antes do retry para não duplicar um dispatch aceito com
+    # resposta perdida. Erros HTTP definitivos não são repetidos.
     for tentativa in range(1, a.retries + 1):
         if st in (200, 204):
             break
+        if st not in (0, 408, 425, 429, 500, 502, 503, 504):
+            break
         print(f"  dispatch HTTP {st}; tentativa {tentativa}/{a.retries} em {a.retry_delay}s", flush=True)
         time.sleep(a.retry_delay)
+        if not PROBE:
+            try:
+                ativos = outros_ativos(a.workflow)
+            except Exception as e:
+                emit(f"AGUARDANDO: resposta do dispatch incerta e consulta de runs falhou: {str(e)[:80]}")
+                return 0
+            if ativos > 0:
+                emit(f"ATIVO: {ativos} outra(s) sessao(oes); dispatch anterior pode ter sido aceito, nao repito")
+                return 0
         st, _ = call("POST", f"/repos/{REPO}/actions/workflows/{a.workflow}/dispatches", body)
     if st in (200, 204):
         nxt = f" gen={a.gen + 1}" if a.gen is not None else ""

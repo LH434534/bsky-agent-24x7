@@ -20,8 +20,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: watchdog-24x7
-  cancel-in-progress: true      # checagens sobrepostas não ajudam
+  group: watchdog-supervisor   # compartilhado com watchdog-prime
+  cancel-in-progress: false    # serializa consulta + dispatch
 
 jobs:
   supervise:
@@ -49,6 +49,14 @@ jobs:
 
       - name: "DECISAO: nova sessao disparada"
         if: startsWith(steps.wd.outputs.decision, 'DISPARADO')
+        run: echo "ok"
+
+      - name: "DECISAO: aguardando backoff"
+        if: startsWith(steps.wd.outputs.decision, 'AGUARDANDO')
+        run: echo "ok"
+
+      - name: "DECISAO: pausa para intervenção"
+        if: startsWith(steps.wd.outputs.decision, 'PAUSADO')
         run: echo "ok"
 
       - name: "DECISAO: ERRO no supervisor"

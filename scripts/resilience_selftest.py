@@ -132,6 +132,54 @@ for f in ("watchdog.yml", "watchdog-prime.yml"):
               minutos)
 wd_txt = (ROOT / ".github" / "workflows" / "watchdog.yml").read_text()
 check("watchdog tem workflow_dispatch (teste manual)", "workflow_dispatch:" in wd_txt)
+wd_a = yaml.safe_load((ROOT / ".github" / "workflows" / "watchdog.yml").read_text())
+wd_b = yaml.safe_load((ROOT / ".github" / "workflows" / "watchdog-prime.yml").read_text())
+check("watchdogs compartilham grupo de concorrência",
+      wd_a["concurrency"]["group"] == wd_b["concurrency"]["group"])
+check("watchdogs serializam sem cancelar o ativo",
+      wd_a["concurrency"]["cancel-in-progress"] is False and
+      wd_b["concurrency"]["cancel-in-progress"] is False)
+sys.path.insert(0, str(ROOT / "scripts"))
+import watchdog as WD  # noqa: E402
+now = time.time()
+def _run_result(conclusion, age=0):
+    ended = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now - age))
+    return {"conclusion": conclusion, "created_at": ended, "updated_at": ended}
+check("1 falha recente aciona backoff", WD.recovery_guard([_run_result("failure")], now).startswith("AGUARDANDO"))
+check("falha antiga libera nova tentativa", WD.recovery_guard([_run_result("failure", 16 * 60)], now) is None)
+check("2 falhas consecutivas aumentam backoff", WD.recovery_guard([_run_result("failure"), _run_result("failure", 4 * 60)], now).startswith("AGUARDANDO"))
+check("3 falhas consecutivas pausam o supervisor", WD.recovery_guard([_run_result("failure"), _run_result("failure", 4 * 60), _run_result("failure", 8 * 60)], now).startswith("PAUSADO"))
+check("sucesso encerra sequência de falhas", WD.recovery_guard([_run_result("success"), _run_result("failure", 4 * 60), _run_result("failure", 8 * 60), _run_result("failure", 12 * 60)], now) is None)
+check("cancelamento manual não é revertido pelo watchdog", WD.recovery_guard([_run_result("cancelled")], now).startswith("PAUSADO"))
+bad_time = {"conclusion": "failure", "created_at": "recent", "updated_at": "bad"}
+check("timestamp inválido bloqueia recuperação", WD.recovery_guard([bad_time], now).startswith("AGUARDANDO"))
+def _watchdog_main(active=0, runs=None):
+    calls, decisions = [], []
+    old = (WD.call, WD.emit, WD.REPO, WD.TOKEN, WD.WF, WD.DRY)
+    def fake_call(method, path, body=None):
+        calls.append((method, path))
+        if method == "GET" and "status=in_progress" in path:
+            return 200, {"total_count": active}
+        if method == "GET" and "status=queued" in path:
+            return 200, {"total_count": 0}
+        if method == "GET" and "status=completed" in path:
+            return 200, {"workflow_runs": runs or []}
+        if method == "POST":
+            return 204, {}
+        return 500, {}
+    WD.call, WD.emit = fake_call, decisions.append
+    WD.REPO, WD.TOKEN, WD.WF, WD.DRY = "owner/repo", "mock", "bot.yml", False
+    try:
+        rc = WD.main()
+    finally:
+        WD.call, WD.emit, WD.REPO, WD.TOKEN, WD.WF, WD.DRY = old
+    return rc, decisions, [c for c in calls if c[0] == "POST"]
+rc, decisions, posts = _watchdog_main(runs=[_run_result("failure")])
+check("watchdog não despacha durante backoff", rc == 0 and decisions[0].startswith("AGUARDANDO") and not posts)
+rc, decisions, posts = _watchdog_main(runs=[_run_result("failure", 16 * 60)])
+check("watchdog despacha após o backoff", rc == 0 and decisions[0].startswith("DISPARADO") and len(posts) == 1)
+rc, decisions, posts = _watchdog_main(active=1)
+check("watchdog não duplica sessão ativa", rc == 0 and decisions[0].startswith("ATIVO") and not posts)
 
 print("\n=== 4. nenhum subprocesso sem timeout (travamento = job morto) ===")
 sem = []
@@ -202,7 +250,8 @@ check("scheduler sem código morto t0/spent",
 
 print("\n=== 8. chain.py: matriz de decisão REAL contra API mock ===")
 class Handler(BaseHTTPRequestHandler):
-    estado = {"ativo": 0, "dispatch_status": 204, "falhas": 0}
+    estado = {"ativo": 0, "dispatch_status": 204, "falhas": 0,
+              "accepted_on_error": False, "post_count": 0}
     def log_message(self, *a): pass
     def _send(self, code, obj):
         raw = json.dumps(obj).encode()
@@ -214,8 +263,12 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, {"workflow_runs": runs})
         else: self._send(200, {})
     def do_POST(self):
+        self.estado["post_count"] += 1
         if self.estado["falhas"] > 0:
-            self.estado["falhas"] -= 1; self._send(503, {"message": "transient"}); return
+            self.estado["falhas"] -= 1
+            if self.estado["accepted_on_error"]:
+                self.estado["ativo"] = 1
+            self._send(503, {"message": "transient"}); return
         self._send(self.estado["dispatch_status"], {})
 
 srv = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
@@ -252,17 +305,27 @@ check("kill switch → DESLIGADO", dec.startswith("DESLIGADO"), dec[:50])
 rc, dec, _ = run_chain({"CHAIN_JOB_STATUS": "cancelled"})
 check("cancelamento → CANCELADO (não renova)", dec.startswith("CANCELADO"), dec[:50])
 rc, dec, _ = run_chain({"CHAIN_JOB_STATUS": "failure", "CHAIN_START_TS": str(time.time() - 5)})
-check("falha em <120s → AGUARDANDO (anti-storm)", dec.startswith("AGUARDANDO"), dec[:60])
+check("falha rápida → AGUARDANDO (sem encadear)", dec.startswith("AGUARDANDO"), dec[:60])
+rc, dec, _ = run_chain({"CHAIN_JOB_STATUS": "failure", "CHAIN_START_TS": str(time.time() - 600)})
+check("falha longa também não encadeia", dec.startswith("AGUARDANDO"), dec[:60])
 Handler.estado["ativo"] = 1
 rc, dec, _ = run_chain({})
 check("outra sessão ativa → ATIVO (sem duplicata)", dec.startswith("ATIVO"), dec[:60])
 Handler.estado["ativo"] = 0
 rc, dec, _ = run_chain({}, ["--workflow", "b.yml", "--ref", "main"])
 check("dispatch → DISPARADO", dec.startswith("DISPARADO") and rc == 0, dec[:60])
-Handler.estado.update({"falhas": 1, "dispatch_status": 204})
+Handler.estado.update({"falhas": 1, "dispatch_status": 204,
+                       "accepted_on_error": False, "post_count": 0})
 rc, dec, out = run_chain({}, ["--retries", "2", "--retry-delay", "0"])
 check("503 transitório → retry → DISPARADO", dec.startswith("DISPARADO") and "tentativa 1/2" in out,
       dec[:70])
+Handler.estado.update({"ativo": 0, "falhas": 1, "accepted_on_error": True,
+                       "post_count": 0})
+rc, dec, _ = run_chain({}, ["--retries", "2", "--retry-delay", "0"])
+check("dispatch aceito com resposta perdida não duplica", dec.startswith("ATIVO") and
+      Handler.estado["post_count"] == 1, dec[:70])
+Handler.estado.update({"ativo": 0, "falhas": 0, "accepted_on_error": False,
+                       "post_count": 0})
 Handler.estado.update({"falhas": 0, "dispatch_status": 500})
 rc, dec, _ = run_chain({}, ["--retries", "1", "--retry-delay", "0"])
 check("erro persistente → ERRO (não finge sucesso)", dec.startswith("ERRO") and rc != 0, dec[:70])
