@@ -11212,3 +11212,10 @@
 09:23:43 AUTO │       → post (tô com vontade de postar)
 09:31:47 AUTO │   ● já está no app
 09:31:47 AUTO │       → post (tô com vontade de postar)
+09:31:53 MAESTRO │   postura: normal → recuperando  (8 erros na última hora)
+09:31:53 AUTO │   [manhã · energia 0.78 · humor +0.34 · postar 1.00 · falar 0.51 · fadiga 0.75 · interesses: przewalskis horses, the hills of, wwwdailykoscomstories2026]
+09:31:53 AUTO │   [postura recuperando (muitos erros — quase parado) · taxa 0.00 · erros 8 · 14 ações · 5 tipos · latência 0.0s]
+09:34:19 AUTO │   ○ fora do app: fora do app até 11:12
+09:34:19 AUTO │   [manhã · energia 0.80 · humor +0.31 · postar 0.95 · falar 0.49 · fadiga 0.62 · interesses: przewalskis horses, the hills of, wwwdailykoscomstories2026]
+09:34:19 AUTO │   [postura recuperando (muitos erros — quase parado) · taxa 0.00 · erros 8 · 14 ações · 5 tipos · latência 0.0s]
+09:44:26 AUTO │   ○ fora do app: fora do app até 11:12
