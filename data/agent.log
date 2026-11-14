@@ -11148,3 +11148,17 @@
 06:48:11 IMG-SMOKE │ prompt: cidade manhã neblina baixa — candid phone photo, natural light, shot on a phone, everyday scene, no 
 06:48:11 IMG-SMOKE │ pollinations: OK 44 KB em 0s (image/jpeg)
 06:48:11 IMG-SMOKE │ ordem agora: ['pollinations', 'huggingface', 'offline']
+06:49:51 AUTO │ motor autônomo iniciado — madrugada · energia 0.91 · humor +0.19 · postar 0.45 · falar 0.37 · fadiga 0.00 · interesses: wwwdailykoscomstories2026, our old horse, i just had
+06:49:51 AUTO │   ● abriu o app (6 min, madrugada)
+06:49:51 AUTO │       → harvest (quero ver o que tá rolando)
+06:50:48 AUTO │   ● já está no app
+06:50:48 AUTO │       → harvest (quero ver o que tá rolando)
+06:52:26 AUTO │   ● já está no app
+06:52:27 AUTO │       → like (achei legal, vou curtir)
+07:00:02 AUTO │   ● já está no app
+07:00:02 AUTO │       → post (tô com vontade de postar)
+07:00:02 MAESTRO │   postura: normal → cauteloso  (taxa 0.00, 4 erros)
+07:00:02 AUTO │   [madrugada · energia 0.80 · humor +0.26 · postar 0.77 · falar 0.35 · fadiga 0.68 · interesses: wwwdailykoscomstories2026, death valley one, the storr is]
+07:00:02 AUTO │   [postura cauteloso (apanhando — diminui o ritmo) · taxa 0.00 · erros 4 · 4 ações · 3 tipos · latência 0.0s]
+07:02:22 AUTO │   ○ fora do app: fora do app até 07:22
+07:15:45 AUTO │   ○ fora do app: fora do app até 07:22

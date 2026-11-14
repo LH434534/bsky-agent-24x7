@@ -45561,3 +45561,17 @@ M  data/agent.log
 06:49:46 GH      │ bio: {'ativo': True, 'aplicar': True, 'min_dias': 30.0, 'min_posts': 10, 'max_trocas_30d': 1, 'candidatas': 4, 'merge_preserva': ['avatar', 'banner', 'displayName', 'labels', 'pinnedPost', 'pronouns', 'website', 'createdAt'], 'protecao_concorrencia': 'swapRecord com o CID lido', 'rollback': 'data/bio_state.json + scripts/bio_rollback.py', 'kill_switch': 'BOT_BIO=0 / BOT_BIO_APPLY=0 (dry-run)'}
 06:49:48 GH      │ influencia: score=72.0 amostras=30 confiavel=True tendencia={'amostras': 93, 'mediana_inicial': 0.0, 'mediana_recente': 0.0, 'delta_pct': 0.0, 'direcao': 'estavel', 'observacao': 'medição dos próprios outcomes; nenhuma projeção de crescimento'}
 06:49:48 GH      │ influencia: ['engenharia_social', 'cta_de_engajamento', 'urgencia_fabricada', 'prova_social_falsa', 'autoridade_inventada', 'promessa_de_multiplicador']
+06:49:48 GH      │ git status rc=0 -> A  data/adaptive_state.json
+A  data/agency.log
+A  data/agency_state.json
+A  data/agent.log
+A  data/bio_state.json
+M  data/brain_model.txt
+A  data/conductor_state.json
+M  data/corpus.txt
+A  data/cortex
+06:49:48 GH      │ git commit rc=0 
+06:49:51 GH      │ git push state rc=0 To https://github.com/LH434534/bsky-agent-24x7
+ + ce383e7...8e634cd HEAD -> state (forced update)
+06:49:51 GH      │ estado commitado (boot)
+06:49:53 GH      │ bio: {"mudar": false, "motivo": "bio_ja_coerente_nao_mexer", "score_atual": 87.4, "score_novo": 84.5, "razoes": ["score 87.4; nenhum problema objetivo"], "dry_run": false, "candidata_hash": "d0410e591f804052", "aplicada": false}
