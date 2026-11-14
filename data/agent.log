@@ -11169,3 +11169,13 @@
 07:23:54 AUTO │   [postura cauteloso (apanhando — diminui o ritmo) · taxa 0.00 · erros 4 · 4 ações · 3 tipos · latência 0.0s]
 07:37:56 AUTO │   ● abriu o app (5 min, madrugada)
 07:37:57 AUTO │       ⊘ maestro vetou like (cauteloso)
+07:38:00 AUTO │   [madrugada · energia 0.81 · humor +0.25 · postar 0.65 · falar 0.45 · fadiga 0.44 · interesses: wwwdailykoscomstories2026, death valley one, the storr is]
+07:38:00 AUTO │   [postura cauteloso (apanhando — diminui o ritmo) · taxa 0.00 · erros 4 · 4 ações · 3 tipos · latência 0.0s]
+07:39:50 AUTO │   ● já está no app
+07:39:50 AUTO │       → reply (tô com vontade de falar com alguém)
+07:44:14 AUTO │   ● já está no app
+07:44:14 AUTO │       → reply (vi uma pergunta e quero responder)
+07:44:14 AUTO │       ⊘ maestro vetou reply
+07:45:27 AUTO │   ○ fora do app: fora do app até 09:17
+08:00:25 AUTO │   ○ fora do app: fora do app até 09:17
+08:00:25 MAESTRO │   postura: cauteloso → normal  (taxa 0.00, 2 erros, 4 tipos)
