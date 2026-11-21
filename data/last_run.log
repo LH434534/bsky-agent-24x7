@@ -55620,3 +55620,16 @@ A  data/cortex
  + 925c53e...0323b69 HEAD -> state (forced update)
 07:29:53 GH      │ estado commitado (boot)
 07:29:54 GH      │ bio: {"mudar": false, "motivo": "bio_ja_coerente_nao_mexer", "score_atual": 87.5, "score_novo": 84.4, "razoes": ["score 87.5; nenhum problema objetivo"], "dry_run": false, "candidata_hash": "d0410e591f804052", "aplicada": false}
+07:42:45 GH      │ git status rc=0 -> M  data/agency_state.json
+M  data/agent.log
+ M data/bio_state.json
+ M data/conductor_state.json
+ M data/cortex_memory.jsonl
+ M data/hb_worker.json
+ M data/images_state.json
+M  data/last_run.log
+M  dat
+07:42:45 GH      │ git commit rc=0 
+07:42:47 GH      │ git push state rc=0 To https://github.com/LH434534/bsky-agent-24x7
+   0323b69..3e70749  HEAD -> state
+07:42:47 GH      │ estado commitado (tick2923)
