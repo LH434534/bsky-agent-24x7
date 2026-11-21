@@ -14985,3 +14985,17 @@
 09:24:46 AUTO │   [manhã · energia 0.94 · humor +0.38 · postar 0.70 · falar 0.53 · fadiga 0.05 · interesses: titanic 1997 -, and the best, for decades private]
 09:24:46 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 3 · 5 ações · 2 tipos · latência 0.0s]
 09:34:36 AUTO │   ○ fora do app: sem vontade (urge=0.59)
+09:34:37 AUTO │   [manhã · energia 0.92 · humor +0.38 · postar 0.67 · falar 0.51 · fadiga 0.00 · interesses: titanic 1997 -, and the best, for decades private]
+09:34:37 AUTO │   [postura normal (segue o ritmo) · taxa 0.00 · erros 3 · 5 ações · 2 tipos · latência 0.0s]
+09:40:25 AUTO │   ● abriu o app (4 min, manhã)
+09:40:26 AUTO │       → reply (vi uma pergunta e quero responder)
+09:40:26 AUTO │       → harvest (quero ver o que tá rolando)
+09:40:27 MAESTRO │   postura: normal → cauteloso  (taxa 0.00, 5 erros)
+09:44:02 AUTO │   ● já está no app
+09:44:02 AUTO │       → post (tô com vontade de postar)
+09:44:02 AUTO │       ⊘ maestro vetou post
+09:44:02 AUTO │   [manhã · energia 0.81 · humor +0.37 · postar 0.90 · falar 0.58 · fadiga 0.30 · interesses: titanic 1997 -, frédéric baillif wins, and the best]
+09:44:02 AUTO │   [postura cauteloso (apanhando — diminui o ritmo) · taxa 0.00 · erros 6 · 8 ações · 3 tipos · latência 0.0s]
+09:49:38 AUTO │   ● já está no app
+09:49:38 AUTO │       ⊘ maestro vetou post (cauteloso)
+09:49:38 AUTO │       → post (tenho mais a dizer que cabe num post)
