@@ -55659,3 +55659,16 @@ M  data/corpus.txt
 08:13:57 GH      │ git push state rc=0 To https://github.com/LH434534/bsky-agent-24x7
    81346a4..9b76fe9  HEAD -> state
 08:13:57 GH      │ estado commitado (tick2928)
+08:38:49 GH      │ git status rc=0 -> M data/adaptive_state.json
+ M data/agency.log
+M  data/agency_state.json
+M  data/agent.log
+ M data/bio_state.json
+ M data/conductor_state.json
+ M data/cortex_memory.jsonl
+ M data/hb_worker.json
+ M data
+08:38:49 GH      │ git commit rc=0 
+08:38:50 GH      │ git push state rc=0 To https://github.com/LH434534/bsky-agent-24x7
+   9b76fe9..d61893f  HEAD -> state
+08:38:50 GH      │ estado commitado (tick2930)
